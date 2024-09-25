@@ -1,0 +1,87 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+
+model User {
+  id                  Int               @id @default(autoincrement())
+  email               String            @unique
+  name                String?
+  role                String
+  patientAppointments Appointment[]     @relation("PatientAppointments")
+  doctorAppointments  Appointment[]     @relation("DoctorAppointments")
+  patientReviews      DoctorReview[]    @relation("PatientReviews")
+  doctorReviews       DoctorReview[]    @relation("DoctorReviews")
+  patientChatrooms    Chatroom[]        @relation("PatientChatrooms")
+  doctorChatrooms     Chatroom[]        @relation("DoctorChatrooms")
+  sentMessages        ChatroomMessage[]
+  profilePicture      Media?
+  availability        Availability[]
+}
+
+model Appointment {
+  id        Int      @id @default(autoincrement())
+  patientId Int
+  doctorId  Int
+  date      DateTime
+  patient   User     @relation("PatientAppointments", fields: [patientId], references: [id])
+  doctor    User     @relation("DoctorAppointments", fields: [doctorId], references: [id])
+}
+
+
+
+model Chatroom {
+  id        Int               @id @default(autoincrement())
+  patientId Int
+  doctorId  Int
+  patient   User              @relation("PatientChatrooms", fields: [patientId], references: [id])
+  doctor    User              @relation("DoctorChatrooms", fields: [doctorId], references: [id])
+  messages  ChatroomMessage[]
+}
+
+model ChatroomMessage {
+  id         Int      @id @default(autoincrement())
+  chatroomId Int
+  senderId   Int
+  content    String
+  createdAt  DateTime @default(now())
+  chatroom   Chatroom @relation(fields: [chatroomId], references: [id])
+  sender     User     @relation(fields: [senderId], references: [id])
+}
+
+model Media {
+  id     Int    @id @default(autoincrement())
+  userId Int    @unique
+  url    String
+  user   User   @relation(fields: [userId], references: [id])
+}
+
+model Availability {
+  id        Int      @id @default(autoincrement())
+  doctorId  Int
+  day       String
+  startTime DateTime
+  endTime   DateTime
+  doctor    User     @relation(fields: [doctorId], references: [id])
+}
+
+model DoctorReview {
+  id        Int     @id @default(autoincrement())
+  patientId Int
+  doctorId  Int
+  rating    Int
+  comment   String?
+  patient   User    @relation("PatientReviews", fields: [patientId], references: [id])
+  doctor    User    @relation("DoctorReviews", fields: [doctorId], references: [id])
+}
