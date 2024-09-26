@@ -1,0 +1,122 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+
+model User {
+  id                  Int               @id @default(autoincrement())
+  firstName           String?
+  lastName            String?
+  username            String            @unique
+  password            String
+  email               String            @unique
+  role                Role
+  speciality          String?
+  locationLatitude    Float?
+  locationLongitude   Float?
+  bio                 String?
+  meetingPrice        Decimal?          @db.Decimal(8, 2)
+  patientAppointments Appointment[]     @relation("PatientAppointments")
+  doctorAppointments  Appointment[]     @relation("DoctorAppointments")
+  patientReviews      DoctorReview[]    @relation("PatientReviews")
+  doctorReviews       DoctorReview[]    @relation("DoctorReviews")
+  patientChatrooms    Chatroom[]        @relation("PatientChatrooms")
+  doctorChatrooms     Chatroom[]        @relation("DoctorChatrooms")
+  sentMessages        ChatroomMessage[]
+  profilePicture      Media?
+  availability        Availability[]
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime          @updatedAt
+}
+
+enum Role {
+  Doctor
+  Patient
+  Admin
+}
+
+model Appointment {
+  id               Int      @id @default(autoincrement())
+  patientId        Int
+  doctorId         Int
+  appointmentDate  DateTime
+  durationMinutes  Int
+  status           AppointmentStatus @default(PENDING)
+  patient          User     @relation("PatientAppointments", fields: [patientId], references: [id])
+  doctor           User     @relation("DoctorAppointments", fields: [doctorId], references: [id])
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+enum AppointmentStatus {
+  PENDING
+  CONFIRMED
+  REJECTED
+}
+
+model Chatroom {
+  id        Int               @id @default(autoincrement())
+  patientId Int
+  doctorId  Int
+  startTime DateTime          @default(now())
+  patient   User              @relation("PatientChatrooms", fields: [patientId], references: [id])
+  doctor    User              @relation("DoctorChatrooms", fields: [doctorId], references: [id])
+  messages  ChatroomMessage[]
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+}
+
+model ChatroomMessage {
+  id         Int      @id @default(autoincrement())
+  chatroomId Int
+  senderId   Int
+  messageText String
+  sentAt     DateTime @default(now())
+  chatroom   Chatroom @relation(fields: [chatroomId], references: [id])
+  sender     User     @relation(fields: [senderId], references: [id])
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model Media {
+  id     Int    @id @default(autoincrement())
+  userId Int    @unique
+  url    String
+  user   User   @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Availability {
+  id           Int      @id @default(autoincrement())
+  doctorId     Int
+  availableDate DateTime @db.Date
+  startTime    String
+  endTime      String
+  isAvailable  Boolean  @default(true)
+  doctor       User     @relation(fields: [doctorId], references: [id])
+}
+
+model DoctorReview {
+  id         Int      @id @default(autoincrement())
+  patientId  Int
+  doctorId   Int
+  rating     Int
+  reviewText String?
+  reviewDate DateTime
+  patient    User     @relation("PatientReviews", fields: [patientId], references: [id])
+  doctor     User     @relation("DoctorReviews", fields: [doctorId], references: [id])
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
