@@ -1,96 +1,132 @@
-import React, { useState } from 'react';
-import { AppBar, Toolbar, Typography, Button, Box, IconButton } from "@mui/material";
-import { Link } from "react-router-dom";
-import logo from "../../assets/images/removal.ai_c197b374-cfae-4464-aa0c-9d7d5eb3a11f-screenshot-from-2024-09-20-14-28-18.png";
-import { useNavigate } from 'react-router-dom';
-import MenuIcon from '@mui/icons-material/Menu';
-import { styled } from '@mui/system';
+"use client";
+import logo from "../../../assets/images/Logo.png";
+import React, { useState } from "react";
+import {
+  AppBar,
+  Toolbar,
+  Typography,
+  Button,
+  Box,
+  IconButton,
+} from "@mui/material";
+import Link from "next/link";
+import Image from "next/image";
+import { useRouter } from "next/navigation";
+import MenuIcon from "@mui/icons-material/Menu";
+import { styled } from "@mui/system";
 
 const Navbar: React.FC = () => {
-  const navigate = useNavigate();
+  const router = useRouter();
   const [showChatRooms, setShowChatRooms] = useState(false);
-  const token = localStorage.getItem('token');
+  const [token, setToken] = useState<string | null>(null);
+
+  React.useEffect(() => {
+    setToken(localStorage.getItem("token"));
+  }, []);
 
   const handleMessagesClick = () => {
     setShowChatRooms(true);
-    navigate("/chat");
+    router.push("/chat");
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    navigate('/login');
+    localStorage.removeItem("token");
+    setToken(null);
+    router.push("/login");
   };
 
   const StyledAppBar = styled(AppBar)({
-    backgroundColor: '#3f51b5',
-    boxShadow: '0 4px 20px 0 rgba(0,0,0,0.12)',
+    backgroundColor: "#3f51b5",
+    boxShadow: "0 4px 20px 0 rgba(0,0,0,0.12)",
+  });
+
+  const StyledLink = styled("a")({
+    textDecoration: "none",
+    color: "inherit",
   });
 
   return (
     <StyledAppBar position="static">
       <Toolbar>
         <Box sx={{ display: "flex", alignItems: "center", flexGrow: 1 }}>
-          <img src={logo} alt="Logo" style={{ height: 40, marginRight: 16 }} />
-          <Typography
-            variant="h6"
-            component={Link}
-            to="/"
-            style={{ textDecoration: "none", color: "inherit" }}
-          >
-            Home
-          </Typography>
+          <Image
+            src={logo}
+            alt="Logo"
+            width={40}
+            height={40}
+            style={{ marginRight: 16 }}
+          />
+          <Link href="/" passHref legacyBehavior>
+            <StyledLink>
+              <Typography
+                variant="h6"
+                component="span"
+                sx={{
+                  color: "#fff",
+                  cursor: "pointer",
+                  "&:hover": {
+                    backgroundColor: "rgba(255, 255, 255, 0.1)",
+                  },
+                  padding: "6px 8px",
+                  borderRadius: "4px",
+                }}
+              >
+                Home
+              </Typography>
+            </StyledLink>
+          </Link>
         </Box>
-        <Box sx={{ display: { xs: 'none', md: 'flex' } }}>
-          <Button
-            component={Link}
-            to="/services"
-            sx={{
-              color: '#fff',
-              '&:hover': {
-                backgroundColor: 'rgba(255, 255, 255, 0.1)',
-              },
-            }}
-          >
-            Services
-          </Button>
-          <Button
-            component={Link}
-            to="/contact"
-            sx={{
-              color: '#fff',
-              '&:hover': {
-                backgroundColor: 'rgba(255, 255, 255, 0.1)',
-              },
-            }}
-          >
-            Contact Us
-          </Button>
+        <Box sx={{ display: { xs: "none", md: "flex" } }}>
+          <Link href="/services" passHref>
+            <Button
+              sx={{
+                color: "#fff",
+                "&:hover": {
+                  backgroundColor: "rgba(255, 255, 255, 0.1)",
+                },
+              }}
+            >
+              Services
+            </Button>
+          </Link>
+          <Link href="/contact" passHref>
+            <Button
+              sx={{
+                color: "#fff",
+                "&:hover": {
+                  backgroundColor: "rgba(255, 255, 255, 0.1)",
+                },
+              }}
+            >
+              Contact Us
+            </Button>
+          </Link>
           {!token && (
             <>
-              <Button
-                component={Link}
-                to="/register"
-                sx={{
-                  color: '#fff',
-                  '&:hover': {
-                    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                  },
-                }}
-              >
-                Register
-              </Button>
-              <Button
-                component={Link}
-                to="/login"
-                sx={{
-                  color: '#fff',
-                  '&:hover': {
-                    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                  },
-                }}
-              >
-                Login
-              </Button>
+              <Link href="/register" passHref>
+                <Button
+                  sx={{
+                    color: "#fff",
+                    "&:hover": {
+                      backgroundColor: "rgba(255, 255, 255, 0.1)",
+                    },
+                  }}
+                >
+                  Register
+                </Button>
+              </Link>
+              <Link href="/login" passHref>
+                <Button
+                  sx={{
+                    color: "#fff",
+                    "&:hover": {
+                      backgroundColor: "rgba(255, 255, 255, 0.1)",
+                    },
+                  }}
+                >
+                  Login
+                </Button>
+              </Link>
             </>
           )}
           {token && (
@@ -98,9 +134,9 @@ const Navbar: React.FC = () => {
               <Button
                 onClick={handleLogout}
                 sx={{
-                  color: '#fff',
-                  '&:hover': {
-                    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                  color: "#fff",
+                  "&:hover": {
+                    backgroundColor: "rgba(255, 255, 255, 0.1)",
                   },
                 }}
               >
@@ -109,26 +145,26 @@ const Navbar: React.FC = () => {
               <Button
                 onClick={handleMessagesClick}
                 sx={{
-                  color: '#fff',
-                  '&:hover': {
-                    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                  color: "#fff",
+                  "&:hover": {
+                    backgroundColor: "rgba(255, 255, 255, 0.1)",
                   },
                 }}
               >
                 Messages
               </Button>
-              <Button
-                component={Link}
-                to="/account-profile"
-                sx={{
-                  color: '#fff',
-                  '&:hover': {
-                    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                  },
-                }}
-              >
-                Profile
-              </Button>
+              <Link href="/account-profile" passHref>
+                <Button
+                  sx={{
+                    color: "#fff",
+                    "&:hover": {
+                      backgroundColor: "rgba(255, 255, 255, 0.1)",
+                    },
+                  }}
+                >
+                  Profile
+                </Button>
+              </Link>
             </>
           )}
         </Box>
@@ -136,7 +172,7 @@ const Navbar: React.FC = () => {
           edge="start"
           color="inherit"
           aria-label="menu"
-          sx={{ display: { xs: 'block', md: 'none' } }}
+          sx={{ display: { xs: "block", md: "none" } }}
         >
           <MenuIcon />
         </IconButton>

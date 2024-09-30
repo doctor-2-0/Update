@@ -1,10 +1,17 @@
-import React, { useEffect, useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { Box, Container, Grid, Typography, CircularProgress, Pagination } from '@mui/material';
-import { styled } from '@mui/system';
-import DoctorCard from './DoctorCard';
-import { fetchDoctors } from '../../features/HomeSlices/doctorsSlice';
-import { RootState, AppDispatch } from '../../store/store';
+import React, { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  Box,
+  Container,
+  Grid,
+  Typography,
+  CircularProgress,
+  Pagination,
+} from "@mui/material";
+import { styled } from "@mui/system";
+import DoctorCard from "./DoctorCard";
+import { fetchDoctors } from "@/features/HomeSlices/doctorsSlice";
+import { RootState, AppDispatch } from "@/lib/store";
 
 const DoctorsWrapper = styled(Box)(({ theme }) => ({
   backgroundColor: theme.palette.background.paper,
@@ -16,40 +23,48 @@ const TitleWrapper = styled(Box)(({ theme }) => ({
 }));
 
 const GradientTitle = styled(Typography)(({ theme }) => ({
-  background: 'linear-gradient(45deg, #1976d2, #2196f3)',
-  WebkitBackgroundClip: 'text',
-  WebkitTextFillColor: 'transparent',
+  background: "linear-gradient(45deg, #1976d2, #2196f3)",
+  WebkitBackgroundClip: "text",
+  WebkitTextFillColor: "transparent",
   fontWeight: 700,
-  fontSize: '3rem',
+  fontSize: "3rem",
   marginBottom: theme.spacing(2),
 }));
 
 const AllDoctors: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
-  const { allDoctors, status, error } = useSelector((state: RootState) => state.doctors);
+  const { allDoctors, status, error } = useSelector(
+    (state: RootState) => state.doctors
+  );
   const [page, setPage] = useState(1);
   const doctorsPerPage = 4;
 
   useEffect(() => {
-    if (status === 'idle') {
+    if (status === "idle") {
       dispatch(fetchDoctors());
     }
   }, [status, dispatch]);
 
-  if (status === 'loading') {
+  if (status === "loading") {
     return <CircularProgress />;
   }
 
-  if (status === 'failed') {
+  if (status === "failed") {
     return <Typography color="error">{error}</Typography>;
   }
 
   const indexOfLastDoctor = page * doctorsPerPage;
   const indexOfFirstDoctor = indexOfLastDoctor - doctorsPerPage;
-  const currentDoctors = allDoctors.slice(indexOfFirstDoctor, indexOfLastDoctor);
+  const currentDoctors = allDoctors.slice(
+    indexOfFirstDoctor,
+    indexOfLastDoctor
+  );
   const pageCount = Math.ceil(allDoctors.length / doctorsPerPage);
 
-  const handleChangePage = (event: React.ChangeEvent<unknown>, value: number) => {
+  const handleChangePage = (
+    event: React.ChangeEvent<unknown>,
+    value: number
+  ) => {
     setPage(value);
   };
 
@@ -62,27 +77,27 @@ const AllDoctors: React.FC = () => {
           </GradientTitle>
         </TitleWrapper>
         <Grid container spacing={4}>
-        {currentDoctors.map((doctor) => {
- 
-  return (
-    <Grid item key={doctor.UserID} xs={12} sm={6} md={3}>
-      <DoctorCard
-        UserID={doctor.UserID}
-        FirstName={doctor.FirstName}
-        LastName={doctor.LastName}
-        Speciality={doctor.Speciality}
-        imageUrl={doctor.imageUrl || "https://via.placeholder.com/150"}
-        Bio={doctor.Bio}
-        LocationLatitude={doctor.LocationLatitude || 0}
-        LocationLongitude={doctor.LocationLongitude || 0}
-        Email={doctor.Email}
-      />
-    </Grid>
-  );
-})}
-
+          {currentDoctors.map((doctor) => {
+            return (
+              <Grid item key={doctor.id} xs={12} sm={6} md={3}>
+                <DoctorCard
+                  UserID={doctor.id}
+                  FirstName={doctor.firstName}
+                  LastName={doctor.lastName}
+                  Speciality={doctor.speciality}
+                  imageUrl={
+                    doctor.imageUrl || "https://via.placeholder.com/150"
+                  }
+                  Bio={doctor.bio}
+                  LocationLatitude={doctor.locationLatitude || 0}
+                  LocationLongitude={doctor.locationLongitude || 0}
+                  Email={doctor.email}
+                />
+              </Grid>
+            );
+          })}
         </Grid>
-        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
+        <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}>
           <Pagination
             count={pageCount}
             page={page}

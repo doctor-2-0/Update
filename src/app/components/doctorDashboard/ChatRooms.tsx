@@ -1,32 +1,43 @@
-import React, { useEffect, useState } from 'react';
-import { List, ListItem, ListItemButton, ListItemText, Box, Typography, CircularProgress, IconButton } from '@mui/material';
-import axios from 'axios';
-import ChatMessages from './ChatMessages';
-import GoogleAuthButtons from './GoogleAuthButtons'; // Import GoogleAuthButtons for Google Meet link creation
-import CloseIcon from '@mui/icons-material/Close';
-import io from 'socket.io-client';
+"use client";
+import React, { useEffect, useState } from "react";
+import {
+  List,
+  ListItem,
+  ListItemButton,
+  ListItemText,
+  Box,
+  Typography,
+  CircularProgress,
+  IconButton,
+} from "@mui/material";
+import axios from "@/lib/axios";
+import ChatMessages from "./ChatMessages";
+import CloseIcon from "@mui/icons-material/Close";
+import io from "socket.io-client";
 
 interface ChatRoom {
-  ChatroomID: number;
-  Patient?: {
-    FirstName: string;
-    LastName: string;
-    UserID?: number;
+  id: number;
+  patient?: {
+    firstName: string;
+    lastName: string;
+    id?: number;
   };
-  Doctor?: {
-    FirstName: string;
-    LastName: string;
-    UserID?: number;
+  doctor?: {
+    firstName: string;
+    lastName: string;
+    id?: number;
   };
-  PatientID?: number;
-  DoctorID?: number;
+
+  patientId?: number;
+
+  doctorId?: number;
 }
 
 interface ChatRoomsProps {
   onClose?: () => void;
 }
 
-const socket = io('http://localhost:4000');
+const socket = io("http://localhost:3000");
 
 const ChatRooms: React.FC<ChatRoomsProps> = ({ onClose }) => {
   const [chatRooms, setChatRooms] = useState<ChatRoom[]>([]);
@@ -37,21 +48,21 @@ const ChatRooms: React.FC<ChatRoomsProps> = ({ onClose }) => {
   const [meetLink, setMeetLink] = useState<string | null>(null);
 
   const getRoomAndJoin = (chatRoom: ChatRoom) => {
-    setSelectedRoom(chatRoom.ChatroomID);
-    socket.emit('join', chatRoom.ChatroomID);
+    setSelectedRoom(chatRoom.id);
+    socket.emit("join", chatRoom.id);
   };
 
   useEffect(() => {
     const checkUserRole = async () => {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem("token");
       if (!token) {
-        setError('No token found. Please log in again.');
+        setError("No token found. Please log in again.");
         setLoading(false);
         return;
       }
 
       try {
-        const doctorResponse = await axios.get('http://localhost:5000/api/users/check-doctor', {
+        const doctorResponse = await axios.get("/auth/check-doctor", {
           headers: { Authorization: `Bearer ${token}` },
         });
         if (doctorResponse.data.isDoctor) {
@@ -59,7 +70,7 @@ const ChatRooms: React.FC<ChatRoomsProps> = ({ onClose }) => {
           return;
         }
 
-        const patientResponse = await axios.get('http://localhost:5000/api/users/check-patient', {
+        const patientResponse = await axios.get("/auth/check-patient", {
           headers: { Authorization: `Bearer ${token}` },
         });
         if (patientResponse.data.isPatient) {
@@ -67,10 +78,10 @@ const ChatRooms: React.FC<ChatRoomsProps> = ({ onClose }) => {
           return;
         }
 
-        setError('User role could not be determined.');
+        setError("User role could not be determined.");
       } catch (error) {
-        console.error('Error checking user role:', error);
-        setError('Error checking user role. Please try again.');
+        console.error("Error checking user role:", error);
+        setError("Error checking user role. Please try again.");
       }
     };
 
@@ -82,15 +93,15 @@ const ChatRooms: React.FC<ChatRoomsProps> = ({ onClose }) => {
       if (isDoctor === null) return; // Wait until we know the user role
 
       try {
-        const response = await axios.get('http://localhost:5000/api/chats', {
-          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+        const response = await axios.get("/chatroom", {
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         });
-        console.log('API response:', response.data);
+        console.log("API response:", response.data);
         setChatRooms(response.data);
         setLoading(false);
       } catch (error) {
-        console.error('Error fetching chat rooms:', error);
-        setError('Error fetching chat rooms. Please try again.');
+        console.error("Error fetching chat rooms:", error);
+        setError("Error fetching chat rooms. Please try again.");
         setLoading(false);
       }
     };
@@ -101,22 +112,22 @@ const ChatRooms: React.FC<ChatRoomsProps> = ({ onClose }) => {
   }, [isDoctor]);
 
   const getDisplayName = (room: ChatRoom) => {
-    console.log('Room data:', room);
+    console.log("Room data:", room);
     if (isDoctor) {
-      if (room.Patient) {
-        return `${room.Patient.FirstName} ${room.Patient.LastName}`;
-      } else if (room.PatientID) {
-        return `Patient ID: ${room.PatientID}`;
+      if (room.patient) {
+        return `${room.patient.firstName} ${room.patient.lastName}`;
+      } else if (room.patientId) {
+        return `Patient ID: ${room.patientId}`;
       } else {
-        return 'Unknown Patient';
+        return "Unknown Patient";
       }
     } else {
-      if (room.Doctor) {
-        return `Dr. ${room.Doctor.FirstName} ${room.Doctor.LastName}`;
-      } else if (room.DoctorID) {
-        return `Doctor ID: ${room.DoctorID}`;
+      if (room.doctor) {
+        return `Dr. ${room.doctor.firstName} ${room.doctor.lastName}`;
+      } else if (room.doctorId) {
+        return `Doctor ID: ${room.doctorId}`;
       } else {
-        return 'Unknown Doctor';
+        return "Unknown Doctor";
       }
     }
   };
@@ -129,29 +140,43 @@ const ChatRooms: React.FC<ChatRoomsProps> = ({ onClose }) => {
         ChatroomID: selectedRoom,
         MessageText: `New Google Meet link: ${link}`,
         Sender: {
-          UserID: parseInt(localStorage.getItem('userId') || '0', 10),
-          Username: localStorage.getItem('Username') || '',
-          FirstName: localStorage.getItem('FirstName') || '',
+          UserID: parseInt(localStorage.getItem("userId") || "0", 10),
+          Username: localStorage.getItem("Username") || "",
+          FirstName: localStorage.getItem("FirstName") || "",
         },
         SentAt: new Date().toISOString(),
       };
-      socket.emit('chat_message', messageData);
+      socket.emit("chat_message", messageData);
     }
   };
 
   if (isDoctor === null) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "100%",
+        }}
+      >
         <CircularProgress />
       </Box>
     );
   }
 
   return (
-    <Box sx={{ display: 'flex', height: '100%' }}>
+    <Box sx={{ display: "flex", height: "100%" }}>
       {/* Chat Rooms List */}
-      <Box sx={{ width: 250, borderRight: '1px solid #ccc' }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: 2 }}>
+      <Box sx={{ width: 250, borderRight: "1px solid #ccc" }}>
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            p: 2,
+          }}
+        >
           <Typography variant="h6">Chat Rooms</Typography>
           {onClose && (
             <IconButton onClick={onClose}>
@@ -162,18 +187,18 @@ const ChatRooms: React.FC<ChatRoomsProps> = ({ onClose }) => {
 
         {/* Loading State */}
         {loading ? (
-          <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
+          <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}>
             <CircularProgress />
           </Box>
         ) : error ? (
-          <Typography sx={{ p: 2, color: 'red' }}>{error}</Typography>
+          <Typography sx={{ p: 2, color: "red" }}>{error}</Typography>
         ) : (
           <List>
             {chatRooms.map((room) => (
-              <ListItem disablePadding key={room.ChatroomID}>
+              <ListItem disablePadding key={room.id}>
                 <ListItemButton
                   onClick={() => getRoomAndJoin(room)}
-                  selected={selectedRoom === room.ChatroomID}
+                  selected={selectedRoom === room.id}
                 >
                   <ListItemText primary={getDisplayName(room)} />
                 </ListItemButton>
@@ -185,13 +210,25 @@ const ChatRooms: React.FC<ChatRoomsProps> = ({ onClose }) => {
 
       {/* Chat Messages Section */}
       {selectedRoom ? (
-        <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
-          <ChatMessages socket={socket} roomId={selectedRoom} meetLink={meetLink} />
-          <GoogleAuthButtons onMeetLinkCreated={handleMeetLinkCreated} />
+        <Box sx={{ flexGrow: 1, display: "flex", flexDirection: "column" }}>
+          <ChatMessages
+            socket={socket}
+            roomId={selectedRoom}
+            meetLink={meetLink}
+          />
         </Box>
       ) : (
-        <Box sx={{ flexGrow: 1, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-          <Typography variant="body1">Select a chat room to view messages</Typography>
+        <Box
+          sx={{
+            flexGrow: 1,
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          <Typography variant="body1">
+            Select a chat room to view messages
+          </Typography>
         </Box>
       )}
     </Box>

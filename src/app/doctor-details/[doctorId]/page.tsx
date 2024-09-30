@@ -1,5 +1,7 @@
-import DoctorDetails from "../../components/Home/DoctorDetails";
+import DoctorDetails from "@/app/components/Home/DoctorDetails";
 
-export default function DoctorDetailsPage() {
+const DoctorDetailsPage = () => {
   return <DoctorDetails />;
-}
+};
+
+export default DoctorDetailsPage;

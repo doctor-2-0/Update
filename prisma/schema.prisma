@@ -25,7 +25,7 @@ model User {
   speciality          String?
   locationLatitude    Float?
   locationLongitude   Float?
-  bio                 String?
+  bio                 String? @db.Text
   meetingPrice        Decimal?          @db.Decimal(8, 2)
   patientAppointments Appointment[]     @relation("PatientAppointments")
   doctorAppointments  Appointment[]     @relation("DoctorAppointments")
@@ -113,7 +113,7 @@ model DoctorReview {
   patientId  Int
   doctorId   Int
   rating     Int
-  reviewText String?
+  reviewText String @db.Text
   reviewDate DateTime
   patient    User     @relation("PatientReviews", fields: [patientId], references: [id])
   doctor     User     @relation("DoctorReviews", fields: [doctorId], references: [id])

@@ -1,7 +1,8 @@
+"use client"; // Next.js 13+ Client Component Directive
 import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { RootState } from "../../src/store/store";
-import { useNavigate } from "react-router-dom";
+import { RootState } from "@/lib/store";
+import { useRouter } from "next/navigation";
 import {
   setFirstName,
   setEmailOrUsername,
@@ -9,7 +10,7 @@ import {
   setConfirmPassword,
   setUserType,
   resetForm,
-} from "../../src/features/formSlice";
+} from "../../features/formSlice";
 import {
   TextField,
   Button,
@@ -23,18 +24,23 @@ import {
   Checkbox,
   FormControlLabel,
 } from "@mui/material";
-import axios from "axios";
-import LocationSearch, { SearchResult } from './user/LocationSearch';
+import axios from "@/lib/axios";
+import { isAxiosError } from "axios";
+import LocationSearch, {
+  SearchResult,
+} from "@/app/components/user/LocationSearch";
 
 const RegisterForm: React.FC = () => {
   const dispatch = useDispatch();
   const formState = useSelector((state: RootState) => state.form);
-  const navigate = useNavigate();
+  const router = useRouter();
   const [error, setError] = useState("");
   const [specialty, setSpecialty] = useState("");
   const [bio, setBio] = useState("");
   const [meetingPrice, setMeetingPrice] = useState("");
-  const [selectedLocation, setSelectedLocation] = useState<SearchResult | null>(null);
+  const [selectedLocation, setSelectedLocation] = useState<SearchResult | null>(
+    null
+  );
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,30 +52,27 @@ const RegisterForm: React.FC = () => {
     }
 
     try {
-      const response = await axios.post(
-        "http://localhost:5000/api/users/register",
-        {
-          FirstName: formState.firstName,
-          LastName: "",
-          Username: formState.Username,
-          Password: formState.password,
-          Email: formState.Username,
-          Role: formState.userType === "doctor" ? "Doctor" : "Patient",
-          Specialty: formState.userType === "doctor" ? specialty : "",
-          Bio: formState.userType === "doctor" ? bio : "",
-          MeetingPrice: formState.userType === "doctor" ? meetingPrice : "",
-          Latitude: selectedLocation ? selectedLocation.lat : "",
-          Longitude: selectedLocation ? selectedLocation.lon : "",
-        }
-      );
+      const response = await axios.post("/auth/register", {
+        FirstName: formState.firstName,
+        LastName: "",
+        Username: formState.Username,
+        Password: formState.password,
+        Email: formState.Username,
+        Role: formState.userType === "doctor" ? "Doctor" : "Patient",
+        Specialty: formState.userType === "doctor" ? specialty : "",
+        Bio: formState.userType === "doctor" ? bio : "",
+        MeetingPrice: formState.userType === "doctor" ? meetingPrice : "",
+        Latitude: selectedLocation ? selectedLocation.lat : "",
+        Longitude: selectedLocation ? selectedLocation.lon : "",
+      });
 
       if (response.status === 201) {
         console.log("Registration successful");
-        navigate("/login");
+        router.push("/login");
         dispatch(resetForm());
       }
     } catch (error) {
-      if (axios.isAxiosError(error) && error.response) {
+      if (isAxiosError(error) && error.response) {
         setError(
           error.response.data.message || "An error occurred during registration"
         );
@@ -137,12 +140,7 @@ const RegisterForm: React.FC = () => {
 
           <Typography variant="body1" align="center" color="textSecondary">
             Already have an account?{" "}
-            <Link
-              component="button"
-              variant="body1"
-              onClick={() => navigate("/login")}
-              sx={{ ml: 1, color: "#1976d2" }}
-            >
+            <Link href="/login" sx={{ ml: 1, color: "#1976d2" }}>
               Login Here
             </Link>
           </Typography>
@@ -235,17 +233,12 @@ const RegisterForm: React.FC = () => {
           <LocationSearch
             onSelectLocation={(result) => {
               setSelectedLocation(result);
-              console.log('Selected location:', result);
+              console.log("Selected location:", result);
             }}
           />
 
           <FormControlLabel
-            control={
-              <Checkbox
-                required
-                name="terms"
-              />
-            }
+            control={<Checkbox required name="terms" />}
             label={
               <Typography variant="body2">
                 Yes, I agree with all{" "}

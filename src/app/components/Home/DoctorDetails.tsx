@@ -1,54 +1,60 @@
-import React from 'react';
-import { useSelector } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
-import { RootState } from '../../store/store';
-import { SelectedDoctor } from '../../features/HomeSlices/selectedDoctorSlice';
-import { Box, Container, Typography, Grid, Paper } from '@mui/material';
-import { styled } from '@mui/system';
-import AppointmentBooking from './AppointmentBooking';
-import { Button } from '@mui/material';
+"use client";
+
+import React from "react";
+import { useSelector } from "react-redux";
+import { useRouter } from "next/navigation";
+import axios from "@/lib/axios";
+import { RootState } from "@/lib/store";
+import { SelectedDoctor } from "@/features/HomeSlices/selectedDoctorSlice";
+import { Box, Container, Typography, Grid, Paper } from "@mui/material";
+import { styled } from "@mui/system";
+import AppointmentBooking from "./AppointmentBooking";
+import { Button } from "@mui/material";
+import { isAxiosError } from "axios";
+import { headers } from "next/headers";
 const HeroWrapper = styled(Box)(({ theme }) => ({
   backgroundColor: theme.palette.background.paper,
   padding: theme.spacing(5, 0),
 }));
 
 const GradientTitle = styled(Typography)(({ theme }) => ({
-  background: 'linear-gradient(45deg, #1976d2, #2196f3)',
-  WebkitBackgroundClip: 'text',
-  WebkitTextFillColor: 'transparent',
+  background: "linear-gradient(45deg, #1976d2, #2196f3)",
+  WebkitBackgroundClip: "text",
+  WebkitTextFillColor: "transparent",
   fontWeight: 700,
-  fontSize: '2.5rem',
+  fontSize: "2.5rem",
 }));
 
 const ImageFrame = styled(Box)({
-  width: '100%',
-  height: '400px',
-  position: 'relative',
-  overflow: 'hidden',
-  borderRadius: '8px',
-  marginBottom: '20px',
+  width: "100%",
+  height: "400px",
+  position: "relative",
+  overflow: "hidden",
+  borderRadius: "8px",
+  marginBottom: "20px",
 });
 
-const StyledImg = styled('img')({
-  position: 'absolute',
+const StyledImg = styled("img")({
+  position: "absolute",
   top: 0,
   left: 0,
-  width: '100%',
-  height: '100%',
-  objectFit: 'cover',
+  width: "100%",
+  height: "100%",
+  objectFit: "cover",
 });
 
 const AppointmentPaper = styled(Paper)(({ theme }) => ({
   padding: theme.spacing(3),
-  backgroundColor: '#f5f5f5',
-  borderRadius: '8px',
+  backgroundColor: "#f5f5f5",
+  borderRadius: "8px",
 }));
 
 const DoctorDetails: React.FC = () => {
   // const selectedDoctor = useSelector<RootState, Doctor | null>(state => state.selectedDoctor);
-  const navigate = useNavigate();
-  const selectedDoctor = useSelector<RootState, SelectedDoctor | null>(state => state.selectedDoctor);
+  const router = useRouter();
+  const selectedDoctor = useSelector<RootState, SelectedDoctor | null>(
+    (state) => state.selectedDoctor
+  );
 
   if (!selectedDoctor) {
     return <Typography>No doctor selected</Typography>;
@@ -56,14 +62,22 @@ const DoctorDetails: React.FC = () => {
 
   const handleMessageClick = async () => {
     try {
-      const response = await axios.post(`http://localhost:5000/api/chats/chatroom/${selectedDoctor.FirstName}`);
-      console.log('API Response:', response.data);
-      const chatroomId = response.data.chatroomId;
-      navigate('/chat', { state: { chatroomId } });
+      const response = await axios.post(
+        `/chatroom/${selectedDoctor.FirstName}`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+      console.log("API Response: ==============", response.data);
+      const chatroomId = response.data.chatRoom.id;
+      router.push(`/chat?chatroomId=${chatroomId}`);
     } catch (error) {
-      console.error('Error creating chatroom:', error);
-      if (axios.isAxiosError(error)) {
-        console.error('Error details:', error.response?.data);
+      console.error("Error creating chatroom:", error);
+      if (isAxiosError(error)) {
+        console.error("Error details:", error.response?.data);
       }
       // Handle error (e.g., show an error message to the user)
     }
@@ -81,13 +95,19 @@ const DoctorDetails: React.FC = () => {
               {selectedDoctor.Speciality}
             </Typography>
             <ImageFrame>
-              <StyledImg src={selectedDoctor.imageUrl} alt={`${selectedDoctor.FirstName} ${selectedDoctor.LastName}`} />
+              <StyledImg
+                src={selectedDoctor.imageUrl}
+                alt={`${selectedDoctor.FirstName} ${selectedDoctor.LastName}`}
+              />
             </ImageFrame>
             <Typography variant="body1" paragraph>
-              <strong>BIO: </strong>{selectedDoctor.Bio}
+              <strong>BIO: </strong>
+              {selectedDoctor.Bio}
             </Typography>
             <Box sx={{ mt: 3 }}>
-              <Typography variant="h6" gutterBottom>Contact Information</Typography>
+              <Typography variant="h6" gutterBottom>
+                Contact Information
+              </Typography>
               <Typography>Email: {selectedDoctor.Email}</Typography>
               <Typography>Phone: (123) 456-7890</Typography>
               <Button

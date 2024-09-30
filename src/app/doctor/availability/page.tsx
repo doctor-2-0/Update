@@ -1,5 +1,7 @@
-import DoctorAvailability from "../../components/doctorDashboard/DoctorAvailability";
+import DoctorAvailability from "@/app/components/doctorDashboard/DoctorAvailability";
 
-export default function DoctorAvailabilityPage() {
+const DoctorAvailabilityPage = () => {
   return <DoctorAvailability />;
-}
+};
+
+export default DoctorAvailabilityPage;

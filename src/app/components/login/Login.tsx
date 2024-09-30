@@ -1,34 +1,37 @@
+"use client";
+
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { RootState, AppDispatch } from "../../store/store";
-import { useNavigate } from "react-router-dom";
+import { RootState, AppDispatch } from "@/lib/store";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import signupBg from "@/assets/images/Signup.jpg";
 import {
   setEmailOrUsername,
   setPassword,
   resetForm,
-} from "../../features/formSlice";
-import { login } from "../../features/authSlice";
+} from "@/features/formSlice";
+import { login } from "@/features/authSlice";
 import UserLocation from "../user/UserLocation";
 import {
   TextField,
   Button,
   Box,
   Typography,
-  Link,
   IconButton,
   Stack,
   Checkbox,
   FormControlLabel,
 } from "@mui/material";
 import { Facebook, LinkedIn, Twitter } from "@mui/icons-material";
-// import { AppDispatch } from "../../store/store";
-import axios from "axios";
+import axios from "@/lib/axios";
+import Image from "next/image";
 
 const LoginForm: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
 
   const formState = useSelector((state: RootState) => state.form);
-  const navigate = useNavigate();
+  const router = useRouter();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [formErrors, setFormErrors] = useState<{ [key: string]: string }>({});
@@ -61,33 +64,30 @@ const LoginForm: React.FC = () => {
     setLoading(true);
 
     try {
-      console.log("Attempting login with:", { Email: formState.Username, Password: formState.password });
-      const result = await dispatch(login({
-        Email: formState.Username,
-        Password: formState.password
-      })).unwrap();
+      const result = await dispatch(
+        login({
+          Email: formState.Username,
+          Password: formState.password,
+        })
+      ).unwrap();
 
       if (result.token) {
         localStorage.setItem("token", result.token);
-        
+
         try {
-          const response = await axios.get('http://localhost:5000/api/users/check-doctor', {
-            headers: { Authorization: `Bearer ${result.token}` }
+          const response = await axios.get("/auth/check-doctor", {
+            headers: { Authorization: `Bearer ${result.token}` },
           });
-          const response2 = await axios.get('http://localhost:5000/api/users/check-patient', {
-            headers: { Authorization: `Bearer ${result.token}` }
+          const response2 = await axios.get("/auth/check-patient", {
+            headers: { Authorization: `Bearer ${result.token}` },
           });
-          
+
           const isDoctor = response.data.isDoctor;
           const isPatient = response2.data.isPatient;
-          console.log("Is Doctor:", isDoctor);
-          console.log("Is Patient:", isPatient);
 
           setIsLoggedIn(true);
           setUserRole(isDoctor ? "Doctor" : "Patient");
-
         } catch (error) {
-          console.error("Error checking user status:", error);
           setErrorMessage("Error determining user type");
         }
 
@@ -96,8 +96,9 @@ const LoginForm: React.FC = () => {
         setErrorMessage("Login failed: No token received");
       }
     } catch (error) {
-      console.error("Login error:", error);
-      setErrorMessage("Login failed. Please check your credentials and try again.");
+      setErrorMessage(
+        "Login failed. Please check your credentials and try again."
+      );
     } finally {
       setLoading(false);
     }
@@ -106,14 +107,13 @@ const LoginForm: React.FC = () => {
   useEffect(() => {
     if (isLoggedIn && isLocationUpdated) {
       if (userRole === "Patient") {
-        console.log("Patient logged in, navigating to patient view");
-        navigate("/");
+        router.push("/");
       } else if (userRole === "Doctor") {
-        console.log("Doctor logged in, navigating to dashboard");
-        navigate("/dashboard");
+        router.push("/dashboard");
       }
     }
-  }, [isLoggedIn, isLocationUpdated, userRole, navigate]);
+  }, [isLoggedIn, isLocationUpdated, userRole, router]);
+
   return (
     <Box
       sx={{
@@ -139,11 +139,16 @@ const LoginForm: React.FC = () => {
           sx={{
             flex: 1,
             display: { xs: "none", md: "block" },
-            backgroundImage: `url('https://medikit-nextjs.vercel.app/_next/static/media/signup-bg.9daac4a8.jpg')`,
-            backgroundSize: "cover",
-            backgroundPosition: "center",
+            position: "relative",
           }}
-        />
+        >
+          <Image
+            src={signupBg}
+            alt="Login background"
+            layout="fill"
+            objectFit="cover"
+          />
+        </Box>
 
         <Box
           component="form"
@@ -211,21 +216,22 @@ const LoginForm: React.FC = () => {
               control={<Checkbox name="remember" color="primary" />}
               label="Remember me"
             />
-            <Link href="#" variant="body2">
-              Lost your password?
-            </Link>
+            <Typography variant="body2">
+              <Link href="#">Lost your password?</Link>
+            </Typography>
           </Box>
 
           <Box textAlign="center" mt={2}>
             <Typography variant="body2">
-              Didn't you account yet?
-              <Link
-                component="button"
-                variant="body2"
-                onClick={() => navigate("/register")}
-                sx={{ ml: 1 }}
-              >
-                Register Here
+              Don't have an account yet?
+              <Link href="/register" passHref>
+                <Typography
+                  variant="body2"
+                  component="span"
+                  sx={{ ml: 1, cursor: "pointer" }}
+                >
+                  Register Here
+                </Typography>
               </Link>
             </Typography>
           </Box>
@@ -255,6 +261,7 @@ const LoginForm: React.FC = () => {
           </Stack>
         </Box>
       </Box>
+
       {isLoggedIn && <UserLocation onComplete={handleLocationUpdateComplete} />}
     </Box>
   );

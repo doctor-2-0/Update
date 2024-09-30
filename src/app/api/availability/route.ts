@@ -1,37 +1,57 @@
-import { NextApiRequest, NextApiResponse } from "next";
+import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse
-) {
-  if (req.method === "POST") {
-    const { doctorId, availableDate, startTime, endTime } = req.body;
-    try {
-      const availability = await prisma.availability.create({
-        data: {
-          doctorId,
-          availableDate: new Date(availableDate),
-          startTime,
-          endTime,
-        },
-      });
-      res.status(201).json(availability);
-    } catch (error) {
-      res.status(500).json({ message: "Error creating availability", error });
-    }
-  } else if (req.method === "GET") {
-    const { doctorId } = req.query;
-    try {
-      const availabilities = await prisma.availability.findMany({
-        where: { doctorId: Number(doctorId) },
-      });
-      res.status(200).json(availabilities);
-    } catch (error) {
-      res.status(500).json({ message: "Error fetching availabilities", error });
-    }
-  } else {
-    res.setHeader("Allow", ["POST", "GET"]);
-    res.status(405).end(`Method ${req.method} Not Allowed`);
+export async function POST(request: NextRequest) {
+  const { doctorId, availableDate, startTime, endTime } = await request.json();
+  try {
+    const availability = await prisma.availability.create({
+      data: {
+        doctorId,
+        availableDate: new Date(availableDate),
+        startTime,
+        endTime,
+      },
+    });
+    return NextResponse.json(availability, { status: 201 });
+  } catch (error) {
+    return NextResponse.json(
+      { message: "Error creating availability", error },
+      { status: 500 }
+    );
+  }
+}
+
+export async function GET(request: NextRequest) {
+  const { searchParams } = new URL(request.url);
+  const doctorId = searchParams.get("doctorId");
+  try {
+    const availabilities = await prisma.availability.findMany({
+      where: { doctorId: Number(doctorId) },
+    });
+    return NextResponse.json(availabilities, { status: 200 });
+  } catch (error) {
+    return NextResponse.json(
+      { message: "Error fetching availabilities", error },
+      { status: 500 }
+    );
+  }
+}
+
+export async function DELETE(request: NextRequest) {
+  const { searchParams } = new URL(request.url);
+  const id = searchParams.get("id");
+  try {
+    await prisma.availability.delete({
+      where: { id: Number(id) },
+    });
+    return NextResponse.json(
+      { message: "Availability deleted successfully" },
+      { status: 200 }
+    );
+  } catch (error) {
+    return NextResponse.json(
+      { message: "Error deleting availability", error },
+      { status: 500 }
+    );
   }
 }

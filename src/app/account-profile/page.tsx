@@ -1,5 +1,7 @@
-import UserAccountProfile from "../components/Home/UserAccountProfile";
+import UserAccountProfile from "@/app/components/Home/UserAccountProfile";
 
-export default function AccountProfilePage() {
+const AccountProfile = () => {
   return <UserAccountProfile />;
-}
+};
+
+export default AccountProfile;

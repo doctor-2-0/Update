@@ -1,5 +1,7 @@
-import ChatRooms from "../components/doctorDashboard/ChatRooms";
+import ChatRooms from "@/app/components/doctorDashboard/ChatRooms";
 
-export default function ChatPage() {
+const ChatPage = () => {
   return <ChatRooms />;
-}
+};
+
+export default ChatPage;

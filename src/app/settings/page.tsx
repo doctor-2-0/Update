@@ -1,5 +1,7 @@
-import DoctorProfile from "../components/doctorDashboard/Profile";
+import DoctorProfile from "@/app/components/doctorDashboard/Profile";
 
-export default function SettingsPage() {
+const SettingsPage = () => {
   return <DoctorProfile />;
-}
+};
+
+export default SettingsPage;

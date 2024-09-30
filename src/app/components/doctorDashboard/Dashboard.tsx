@@ -1,22 +1,26 @@
-import React, { useEffect } from 'react';
-import { Grid, Typography, Paper, Box } from '@mui/material';
-import { useSelector, useDispatch } from 'react-redux';
-import { RootState, AppDispatch } from '../../store/store';
-import { login } from '../../features/authSlice';
-import { fetchAppointmentsByUserId } from '../../features/appointmentSlice';
-import StatCard from './StatCard';
-import AppointmentList from './AppointmentList';
-import PatientChart from './PatientChart';
-import RecentPatients from './RecentPatients';
-import Sidebar from './Sidebar'; // Import the Sidebar component
+import React, { useEffect } from "react";
+import { Grid, Typography, Paper, Box } from "@mui/material";
+import { useSelector, useDispatch } from "react-redux";
+import { RootState, AppDispatch } from "@/lib/store";
+import { login } from "@/features/authSlice";
+import { fetchAppointmentsByUserId } from "@/features/appointmentSlice";
+import StatCard from "./StatCard";
+import AppointmentList from "./AppointmentList";
+import PatientChart from "./PatientChart";
+import RecentPatients from "./RecentPatients";
+import Sidebar from "./Sidebar";
 
 const Dashboard: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
-  const { user, loading, isAuthenticated } = useSelector((state: RootState) => state.Auth);
-  const { appointments, loadingApp, errorApp } = useSelector((state: RootState) => state.appointments);
+  const { user, loading, isAuthenticated } = useSelector(
+    (state: RootState) => state.Auth
+  );
+  const { appointments, loadingApp, errorApp } = useSelector(
+    (state: RootState) => state.appointments
+  );
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     if (token && !isAuthenticated && !loading) {
       dispatch(login({ token }))
         .unwrap()
@@ -30,15 +34,15 @@ const Dashboard: React.FC = () => {
   }, [dispatch, isAuthenticated, loading]);
 
   const getWelcomeMessage = () => {
-    if (loading) return 'Loading...';
-    if (!isAuthenticated || !user) return 'Welcome, Doctor';
-    
-    const doctorName = user.LastName || 'Doctor';
+    if (loading) return "Loading...";
+    if (!isAuthenticated || !user) return "Welcome, Doctor";
+
+    const doctorName = user.LastName || "Doctor";
     return `Welcome, Dr. ${doctorName}`;
   };
 
   return (
-    <Box sx={{ display: 'flex', flexGrow: 1 }}>
+    <Box sx={{ display: "flex", flexGrow: 1 }}>
       <Sidebar /> {/* Render the Sidebar on the left */}
       <Box sx={{ flexGrow: 1, p: 2 }}>
         <Typography variant="h4" gutterBottom>
@@ -49,7 +53,11 @@ const Dashboard: React.FC = () => {
         </Typography>
         <Grid container spacing={3}>
           <Grid item xs={12} sm={6} md={3}>
-            <StatCard title="Appointments" value={appointments.length.toString()} color="#8e44ad" />
+            <StatCard
+              title="Appointments"
+              value={appointments.length.toString()}
+              color="#8e44ad"
+            />
           </Grid>
           <Grid item xs={12} sm={6} md={3}>
             <StatCard title="Total Patients" value="N/A" color="#e74c3c" />

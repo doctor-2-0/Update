@@ -16,8 +16,8 @@ import {
   DialogActions,
   Button,
 } from "@mui/material";
-import { AppDispatch } from "../../store/store";
-import { updateStatus } from "../../features/userSlice";
+import { AppDispatch } from "@/lib/store";
+import { updateStatus } from "@/features/userSlice";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 
@@ -59,8 +59,10 @@ const AppointmentList: React.FC<AppointmentListProps> = ({ appointments }) => {
       if (status === "confirmed") {
         setOpenDialog(true);
       } else {
-        const result = await dispatch(updateStatus({ id: selectedAppointment.AppointmentID, status }));
-        if (result.meta.requestStatus === 'fulfilled') {
+        const result = await dispatch(
+          updateStatus({ id: selectedAppointment.AppointmentID, status })
+        );
+        if (result.meta.requestStatus === "fulfilled") {
           updateLocalAppointment(selectedAppointment.AppointmentID, status);
           setSelectedStatus(status);
           handleClose();
@@ -71,8 +73,13 @@ const AppointmentList: React.FC<AppointmentListProps> = ({ appointments }) => {
 
   const handleConfirmAppointment = async () => {
     if (selectedAppointment) {
-      const result = await dispatch(updateStatus({ id: selectedAppointment.AppointmentID, status: "confirmed" }));
-      if (result.meta.requestStatus === 'fulfilled') {
+      const result = await dispatch(
+        updateStatus({
+          id: selectedAppointment.AppointmentID,
+          status: "confirmed",
+        })
+      );
+      if (result.meta.requestStatus === "fulfilled") {
         updateLocalAppointment(selectedAppointment.AppointmentID, "confirmed");
         setSelectedStatus("confirmed");
         setOpenDialog(false);
@@ -82,9 +89,11 @@ const AppointmentList: React.FC<AppointmentListProps> = ({ appointments }) => {
   };
 
   const updateLocalAppointment = (appointmentId: number, newStatus: string) => {
-    setLocalAppointments(prevAppointments =>
-      prevAppointments.map(app =>
-        app.AppointmentID === appointmentId ? { ...app, Status: newStatus } : app
+    setLocalAppointments((prevAppointments) =>
+      prevAppointments.map((app) =>
+        app.AppointmentID === appointmentId
+          ? { ...app, Status: newStatus }
+          : app
       )
     );
   };
@@ -126,11 +135,7 @@ const AppointmentList: React.FC<AppointmentListProps> = ({ appointments }) => {
           <Typography>No appointments found</Typography>
         )}
       </List>
-      <Menu
-        anchorEl={anchorEl}
-        open={Boolean(anchorEl)}
-        onClose={handleClose}
-      >
+      <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleClose}>
         {statusOptions.map((status) => (
           <MenuItem
             key={status}
@@ -147,7 +152,8 @@ const AppointmentList: React.FC<AppointmentListProps> = ({ appointments }) => {
           {selectedAppointment && (
             <Typography>
               Are you sure you want to confirm the appointment for{" "}
-              {selectedAppointment.Patient.FirstName} {selectedAppointment.Patient.LastName}?
+              {selectedAppointment.Patient.FirstName}{" "}
+              {selectedAppointment.Patient.LastName}?
             </Typography>
           )}
         </DialogContent>

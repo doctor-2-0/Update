@@ -1,5 +1,7 @@
-import UserProfileUpload from "../components/Home/UserProfileUpload";
+import UserProfileUpload from "@/app/components/Home/UserProfileUpload";
 
-export default function UserProfileUploadPage() {
+const UploadProfile = () => {
   return <UserProfileUpload />;
-}
+};
+
+export default UploadProfile;

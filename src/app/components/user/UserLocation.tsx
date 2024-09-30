@@ -1,11 +1,14 @@
-import React, { useEffect, useRef } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { RootState } from '../../store/store';
-import { setLocation, setLoading, setError } from '../../features/userLocationSlice';
-import axios from 'axios';
+import React, { useEffect, useRef } from "react";
+import { useDispatch } from "react-redux";
+import { AppDispatch } from "@/lib/store";
+import {
+  setLocation,
+  setLoading,
+  setError,
+} from "@/features/userLocationSlice";
 
 const UserLocation: React.FC<{ onComplete: () => void }> = ({ onComplete }) => {
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
   const updateAttempted = useRef(false);
 
   useEffect(() => {
@@ -13,16 +16,16 @@ const UserLocation: React.FC<{ onComplete: () => void }> = ({ onComplete }) => {
       if (updateAttempted.current) return;
       updateAttempted.current = true;
 
-      console.log('Starting location update process');
+      console.log("Starting location update process");
       dispatch(setLoading(true));
 
       if (!navigator.geolocation) {
-        console.log('Geolocation is not supported by your browser');
-        dispatch(setError('Geolocation is not supported by your browser'));
+        console.log("Geolocation is not supported by your browser");
+        dispatch(setError("Geolocation is not supported by your browser"));
         return;
       }
 
-      console.log('Requesting user location');
+      console.log("Requesting user location");
       navigator.geolocation.getCurrentPosition(
         (position) => {
           const { latitude, longitude } = position.coords;
@@ -32,7 +35,7 @@ const UserLocation: React.FC<{ onComplete: () => void }> = ({ onComplete }) => {
           onComplete();
         },
         (error) => {
-          console.error('Error getting location:', error);
+          console.error("Error getting location:", error);
           dispatch(setError(error.message));
           dispatch(setLoading(false));
           onComplete();

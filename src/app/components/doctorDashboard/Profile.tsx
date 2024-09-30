@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { fetchDoctorById, updateDoctorProfile } from '../../features/doctorSlice';
-import { RootState, AppDispatch } from '../../store/store';
-import { jwtDecode } from 'jwt-decode';
+import React, { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchDoctorById, updateDoctorProfile } from "@/features/doctorSlice";
+import { RootState, AppDispatch } from "@/lib/store";
+import { jwtDecode } from "jwt-decode";
 import {
   Avatar,
   Box,
@@ -16,29 +16,29 @@ import {
   Button,
   TextField,
   MenuItem,
-} from '@mui/material';
-import { styled } from '@mui/system';
-import Rating from '@mui/material/Rating';
+} from "@mui/material";
+import { styled } from "@mui/system";
+import Rating from "@mui/material/Rating";
 
 // Styled Components
-import { Theme } from '@mui/material/styles';
+import { Theme } from "@mui/material/styles";
 
 const ProfileAvatar = styled(Avatar)(({ theme }: { theme: Theme }) => ({
   width: theme.spacing(20),
   height: theme.spacing(20),
-  margin: 'auto',
+  margin: "auto",
   border: `4px solid ${theme.palette.primary.main}`,
 }));
 
 const ProfileCard = styled(Card)(({ theme }: { theme: Theme }) => ({
   padding: theme.spacing(3),
-  textAlign: 'center',
+  textAlign: "center",
   boxShadow: theme.shadows[4],
 }));
 
 const ProfileSection = styled(Box)(({ theme }: { theme: Theme }) => ({
-  display: 'flex',
-  justifyContent: 'center',
+  display: "flex",
+  justifyContent: "center",
   marginBottom: theme.spacing(2),
 }));
 
@@ -49,22 +49,24 @@ const TabSection = styled(Box)(({ theme }: { theme: Theme }) => ({
 
 const DoctorProfile: React.FC = () => {
   const dispatch: AppDispatch = useDispatch();
-  const { doctor, loading, error } = useSelector((state: RootState) => state.doctor);
+  const { doctor, loading, error } = useSelector(
+    (state: RootState) => state.doctor
+  );
 
   const [editMode, setEditMode] = useState(false);
   const [tabValue, setTabValue] = React.useState(3);
 
   // Local form state for profile fields
   const [profileData, setProfileData] = useState({
-    FirstName: '',
-    LastName: '',
-    Speciality: '',
+    FirstName: "",
+    LastName: "",
+    Speciality: "",
     MeetingPrice: 0,
-    Bio: '',
+    Bio: "",
   });
 
   const getUserIdFromToken = () => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     if (token) {
       const decodedToken: any = jwtDecode(token);
       return decodedToken.UserID; // Assuming the UserID is stored as 'id' in the token payload
@@ -91,32 +93,29 @@ const DoctorProfile: React.FC = () => {
     }
   }, [doctor]);
 
+  const ProfileAvatar = styled(Avatar)({
+    width: 160,
+    height: 160,
+    margin: "auto",
+    border: "4px solid #3f51b5",
+  });
 
+  const ProfileCard = styled(Card)({
+    padding: 16,
+    textAlign: "center",
+    boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
+  });
 
-const ProfileAvatar = styled(Avatar)({
-  width: 160,
-  height: 160,
-  margin: 'auto',
-  border: '4px solid #3f51b5',
-});
+  const ProfileSection = styled(Box)({
+    display: "flex",
+    justifyContent: "center",
+    marginBottom: 16,
+  });
 
-const ProfileCard = styled(Card)({
-  padding: 16,
-  textAlign: 'center',
-  boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
-});
-
-const ProfileSection = styled(Box)({
-  display: 'flex',
-  justifyContent: 'center',
-  marginBottom: 16,
-});
-
-const TabSection = styled(Box)({
-  padding: 16,
-  borderTop: '1px solid #ddd',
-});
-
+  const TabSection = styled(Box)({
+    padding: 16,
+    borderTop: "1px solid #ddd",
+  });
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
@@ -154,7 +153,6 @@ const TabSection = styled(Box)({
               <ProfileAvatar
                 alt={`${doctor.FirstName} ${doctor.LastName}`}
                 src="/path/to/doctor-avatar.jpg"
-
               />
               {!editMode ? (
                 <>
@@ -165,7 +163,11 @@ const TabSection = styled(Box)({
                     {doctor.Speciality}
                   </Typography>
                   <ProfileSection>
-                    <Button variant="contained" color="primary" onClick={handleEditProfileClick}>
+                    <Button
+                      variant="contained"
+                      color="primary"
+                      onClick={handleEditProfileClick}
+                    >
                       Edit Profile
                     </Button>
                   </ProfileSection>
@@ -234,10 +236,18 @@ const TabSection = styled(Box)({
                     margin="normal"
                   />
                   <Box mt={2} display="flex" justifyContent="space-between">
-                    <Button variant="contained" color="primary" onClick={handleSubmit}>
+                    <Button
+                      variant="contained"
+                      color="primary"
+                      onClick={handleSubmit}
+                    >
                       Save Changes
                     </Button>
-                    <Button variant="outlined" color="secondary" onClick={handleCancelEdit}>
+                    <Button
+                      variant="outlined"
+                      color="secondary"
+                      onClick={handleCancelEdit}
+                    >
                       Cancel
                     </Button>
                   </Box>

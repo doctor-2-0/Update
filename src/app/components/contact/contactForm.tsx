@@ -1,4 +1,5 @@
-import React from "react";
+"use client";
+import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   TextField,
@@ -14,16 +15,17 @@ import {
   Avatar,
   Paper,
 } from "@mui/material";
-import { updateField, resetForm } from "../../features/contactFormSlice";
-import { RootState } from "../../store/store";
+import { updateField, resetForm } from "@/features/contactFormSlice";
+import { RootState } from "@/lib/store";
 import { SelectChangeEvent } from "@mui/material";
-import ContactImage from "../../assets/images/ielts-listening-form-completion_1.webp";
+import Image from "next/image";
+import ContactImage from "@/assets/images/ielts-listening-form-completion_1.webp";
 
 const ContactForm: React.FC = () => {
   const dispatch = useDispatch();
   const formState = useSelector((state: RootState) => state.contactForm);
 
-  const [errors, setErrors] = React.useState({
+  const [errors, setErrors] = useState({
     firstName: "",
     lastName: "",
     email: "",
@@ -82,11 +84,14 @@ const ContactForm: React.FC = () => {
           }}
         >
           <Box sx={{ display: "flex", justifyContent: "center", mb: 3 }}>
-            <Avatar
-              alt="Contact Us"
-              src={ContactImage}
-              sx={{ width: 100, height: 100 }}
-            />
+            <Avatar sx={{ width: 100, height: 100 }}>
+              <Image
+                src={ContactImage}
+                alt="Contact Us"
+                width={100}
+                height={100}
+              />
+            </Avatar>
           </Box>
           <Typography variant="h4" gutterBottom textAlign="center">
             Contact Us
