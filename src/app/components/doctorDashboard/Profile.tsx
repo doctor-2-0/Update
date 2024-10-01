@@ -1,62 +1,57 @@
-import React, { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
 import { fetchDoctorById, updateDoctorProfile } from "@/features/doctorSlice";
-import { RootState, AppDispatch } from "@/lib/store";
-import { jwtDecode } from "jwt-decode";
+import { AppDispatch, RootState } from "@/lib/store";
 import {
   Avatar,
   Box,
+  Button,
   Card,
   CardContent,
   Container,
   Grid,
+  MenuItem,
   Tab,
   Tabs,
-  Typography,
-  Button,
   TextField,
-  MenuItem,
+  Typography,
 } from "@mui/material";
 import { styled } from "@mui/system";
-import Rating from "@mui/material/Rating";
+import React, { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 
-// Styled Components
-import { Theme } from "@mui/material/styles";
-
-const ProfileAvatar = styled(Avatar)(({ theme }: { theme: Theme }) => ({
+const ProfileAvatar = styled(Avatar)(({ theme }) => ({
   width: theme.spacing(20),
   height: theme.spacing(20),
   margin: "auto",
   border: `4px solid ${theme.palette.primary.main}`,
 }));
 
-const ProfileCard = styled(Card)(({ theme }: { theme: Theme }) => ({
-  padding: theme.spacing(3),
-  textAlign: "center",
-  boxShadow: theme.shadows[4],
-}));
+const ProfileCard = styled(Card)`
+  ${({ theme }) => `
+    padding: ${theme.spacing(3)};
+    text-align: center;
+  `}
+`;
 
-const ProfileSection = styled(Box)(({ theme }: { theme: Theme }) => ({
+const ProfileSection = styled(Box)(({ theme }) => ({
   display: "flex",
   justifyContent: "center",
   marginBottom: theme.spacing(2),
 }));
 
-const TabSection = styled(Box)(({ theme }: { theme: Theme }) => ({
+const TabSection = styled(Box)(({ theme }) => ({
   padding: theme.spacing(3),
   borderTop: `1px solid ${theme.palette.divider}`,
 }));
 
-const DoctorProfile: React.FC = () => {
+const DoctorProfile: React.FC<{ doctorId: string }> = ({ doctorId }) => {
   const dispatch: AppDispatch = useDispatch();
   const { doctor, loading, error } = useSelector(
     (state: RootState) => state.doctor
   );
 
   const [editMode, setEditMode] = useState(false);
-  const [tabValue, setTabValue] = React.useState(3);
+  const [tabValue, setTabValue] = useState(3);
 
-  // Local form state for profile fields
   const [profileData, setProfileData] = useState({
     FirstName: "",
     LastName: "",
@@ -65,21 +60,9 @@ const DoctorProfile: React.FC = () => {
     Bio: "",
   });
 
-  const getUserIdFromToken = () => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      const decodedToken: any = jwtDecode(token);
-      return decodedToken.UserID; // Assuming the UserID is stored as 'id' in the token payload
-    }
-    return null;
-  };
-
   useEffect(() => {
-    const userId = getUserIdFromToken();
-    if (userId) {
-      dispatch(fetchDoctorById(userId));
-    }
-  }, [dispatch]);
+    dispatch(fetchDoctorById(Number(doctorId)));
+  }, [doctorId, dispatch]);
 
   useEffect(() => {
     if (doctor) {
@@ -92,30 +75,6 @@ const DoctorProfile: React.FC = () => {
       });
     }
   }, [doctor]);
-
-  const ProfileAvatar = styled(Avatar)({
-    width: 160,
-    height: 160,
-    margin: "auto",
-    border: "4px solid #3f51b5",
-  });
-
-  const ProfileCard = styled(Card)({
-    padding: 16,
-    textAlign: "center",
-    boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
-  });
-
-  const ProfileSection = styled(Box)({
-    display: "flex",
-    justifyContent: "center",
-    marginBottom: 16,
-  });
-
-  const TabSection = styled(Box)({
-    padding: 16,
-    borderTop: "1px solid #ddd",
-  });
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
@@ -136,7 +95,7 @@ const DoctorProfile: React.FC = () => {
   const handleSubmit = () => {
     if (doctor && doctor.id) {
       dispatch(updateDoctorProfile({ id: doctor.id, ...profileData }));
-      setEditMode(false); // Close the form after submission
+      setEditMode(false);
     }
   };
 
@@ -146,7 +105,6 @@ const DoctorProfile: React.FC = () => {
   return doctor ? (
     <Container maxWidth="lg" sx={{ py: 4 }}>
       <Grid container spacing={4}>
-        {/* Profile Section */}
         <Grid item xs={12} md={4}>
           <ProfileCard>
             <CardContent>
@@ -185,7 +143,6 @@ const DoctorProfile: React.FC = () => {
                 </>
               ) : (
                 <>
-                  {/* Editable Form */}
                   <TextField
                     label="First Name"
                     name="FirstName"
@@ -214,7 +171,6 @@ const DoctorProfile: React.FC = () => {
                     <MenuItem value="Cardiologist">Cardiologist</MenuItem>
                     <MenuItem value="Dermatologist">Dermatologist</MenuItem>
                     <MenuItem value="Pediatrician">Pediatrician</MenuItem>
-                    {/* Add more specialities here */}
                   </TextField>
                   <TextField
                     label="Meeting Price"
@@ -257,7 +213,6 @@ const DoctorProfile: React.FC = () => {
           </ProfileCard>
         </Grid>
 
-        {/* Tab Section */}
         <Grid item xs={12} md={8}>
           <Box mb={2}>
             <Tabs
@@ -274,16 +229,13 @@ const DoctorProfile: React.FC = () => {
             </Tabs>
           </Box>
           <TabSection>
-            {/* Render content based on selected tab */}
             {tabValue === 3 && (
               <Box>
                 <Typography variant="h6" gutterBottom>
                   Reviews
                 </Typography>
-                {/* Reviews will be rendered here */}
               </Box>
             )}
-            {/* Add other tab content here */}
           </TabSection>
         </Grid>
       </Grid>
