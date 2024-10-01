@@ -1,24 +1,22 @@
 "use client";
+
 import React, { useState, useEffect } from "react";
 import {
-  Container,
-  Typography,
   Button,
+  Container,
+  Box,
   List,
   ListItem,
   ListItemText,
   Paper,
-  Grid,
+  Typography,
 } from "@mui/material";
-import { DatePicker } from "@mui/x-date-pickers/DatePicker";
-import { TimePicker } from "@mui/x-date-pickers/TimePicker";
-import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import { RootState, AppDispatch } from "@/lib/store";
-import { fetchSession } from "@/features/sessionSlice";
-import { useSelector, useDispatch } from "react-redux";
-import dayjs, { Dayjs } from "dayjs";
+import { DatePicker } from "@mui/x-date-pickers/DatePicker";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { TimePicker } from "@mui/x-date-pickers/TimePicker";
 import axios from "axios";
+import dayjs, { Dayjs } from "dayjs";
 
 interface Availability {
   AvailabilityID: number;
@@ -29,42 +27,27 @@ interface Availability {
   IsAvailable: boolean;
 }
 
-const DoctorAvailability: React.FC = () => {
+interface Props {
+  session: any;
+}
+
+const DoctorAvailability: React.FC<Props> = ({ session }) => {
   const [availability, setAvailability] = useState<Availability[]>([]);
   const [selectedDate, setSelectedDate] = useState<Dayjs | null>(null);
   const [startTime, setStartTime] = useState<Dayjs | null>(null);
   const [endTime, setEndTime] = useState<Dayjs | null>(null);
   const [doctorId, setDoctorId] = useState<number | null>(null);
 
-  const { session, loading, error } = useSelector(
-    (state: RootState) => state.session
-  );
-
-  const dispatch = useDispatch<AppDispatch>();
-
-  useEffect(() => {
-    dispatch(fetchSession());
-  }, [dispatch]);
-
-  useEffect(() => {
-    if (session) {
-      console.log("Session Data:", session);
-    }
-  }, [session]);
-
   useEffect(() => {
     const fetchDoctorInfo = async () => {
       if (!session) return;
-      if (loading) return;
+
       try {
-        const response = await axios.get(
-          `http://localhost:5000/api/doctor/${session.UserID}`,
-          {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("authToken")}`,
-            },
-          }
-        );
+        const response = await axios.get(`/api/doctor/${session.UserID}`, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+          },
+        });
         setDoctorId(response.data.UserID);
       } catch (error) {
         console.error("Failed to fetch doctor info", error);
@@ -93,7 +76,6 @@ const DoctorAvailability: React.FC = () => {
 
   const handleAddAvailability = async () => {
     if (selectedDate && startTime && endTime && doctorId) {
-      // Ensure startTime is before endTime and not the same
       if (startTime.isSame(endTime)) {
         alert("Start time and end time cannot be the same.");
         return;
@@ -132,13 +114,13 @@ const DoctorAvailability: React.FC = () => {
 
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs}>
-      <Container maxWidth="md" sx={{ mt: 4 }}>
+      <Container>
         <Paper elevation={3} sx={{ p: 4 }}>
           <Typography variant="h4" gutterBottom>
             Doctor Availability
           </Typography>
-          <Grid container spacing={3}>
-            <Grid item xs={12} sm={4}>
+          <Box display="flex" gap={2}>
+            <Box>
               <DatePicker
                 label="Select Date"
                 value={selectedDate}
@@ -146,24 +128,24 @@ const DoctorAvailability: React.FC = () => {
                 slotProps={{ textField: { fullWidth: true } }}
                 minDate={dayjs()}
               />
-            </Grid>
-            <Grid item xs={12} sm={4}>
+            </Box>
+            <Box  maxWidth="md" sx={{ mt: 4 }}>
               <TimePicker
                 label="Start Time"
                 value={startTime}
                 onChange={(newValue) => setStartTime(newValue)}
                 slotProps={{ textField: { fullWidth: true } }}
               />
-            </Grid>
-            <Grid item xs={12} sm={4}>
+            </Box>
+            <Box  maxWidth="md" sx={{ mt: 4 }}>
               <TimePicker
                 label="End Time"
                 value={endTime}
                 onChange={(newValue) => setEndTime(newValue)}
                 slotProps={{ textField: { fullWidth: true } }}
               />
-            </Grid>
-          </Grid>
+            </Box>
+          </Box>
           <Button
             variant="contained"
             color="primary"
@@ -194,5 +176,16 @@ const DoctorAvailability: React.FC = () => {
     </LocalizationProvider>
   );
 };
+
+export async function getServerSideProps(context: any) {
+  const { req } = context;
+  const authToken = req.cookies.authToken;
+
+  const session = authToken ? { UserID: "1" } : null;
+
+  return {
+    props: { session },
+  };
+}
 
 export default DoctorAvailability;

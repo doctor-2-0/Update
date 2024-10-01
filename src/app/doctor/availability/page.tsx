@@ -1,7 +1,8 @@
 import DoctorAvailability from "@/app/components/doctorDashboard/DoctorAvailability";
-
-const DoctorAvailabilityPage = () => {
-  return <DoctorAvailability />;
+import { getServerSession } from "next-auth";
+const DoctorAvailabilityPage = async () => {
+  const session = await getServerSession();
+  return <DoctorAvailability session={session} />;
 };
 
 export default DoctorAvailabilityPage;

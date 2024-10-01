@@ -1,6 +1,5 @@
-import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import axios from "@/lib/axios";
-import { isAxiosError } from "axios";
+import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
+import axios, { isAxiosError } from "axios";
 
 export interface Doctor {
   id: number;
@@ -31,7 +30,7 @@ const initialState: DoctorsState = {
 export const fetchDoctors = createAsyncThunk(
   "doctors/fetchDoctors",
   async () => {
-    const response = await axios.get("/doctors");
+    const response = await axios.get("/api/doctors"); // Use Next.js API route
     return response.data;
   }
 );
@@ -59,7 +58,7 @@ export const searchDoctors = createAsyncThunk(
         return rejectWithValue("No authentication token found");
       }
       const response = await axios.post(
-        "/doctors/searchDoctors",
+        "/api/doctors/searchDoctors", // Use Next.js API route
         searchParams,
         {
           headers: {

@@ -1,22 +1,22 @@
-import React from "react";
-import { useDispatch } from "react-redux";
+import { setShowMap } from "@/features/HomeSlices/mapSlice";
 import {
+  SelectedDoctor,
+  setSelectedDoctor,
+} from "@/features/HomeSlices/selectedDoctorSlice";
+import { setSelectedDoctorLocation } from "@/features/userLocationSlice";
+import MapIcon from "@mui/icons-material/Map";
+import {
+  Box,
+  Button,
   Card,
   CardContent,
-  Typography,
   CardMedia,
-  Button,
-  Box,
+  Typography,
 } from "@mui/material";
-import { useRouter } from "next/navigation";
-import {
-  setSelectedDoctor,
-  SelectedDoctor,
-} from "@/features/HomeSlices/selectedDoctorSlice";
 import { styled } from "@mui/system";
-import MapIcon from "@mui/icons-material/Map";
-import { setSelectedDoctorLocation } from "@/features/userLocationSlice";
-import { setShowMap } from "@/features/HomeSlices/mapSlice";
+import { useRouter } from "next/navigation";
+import React from "react";
+import { useDispatch } from "react-redux";
 
 interface DoctorProps {
   UserID: number;
@@ -59,7 +59,7 @@ const DoctorCard: React.FC<DoctorProps> = ({
   Email,
 }) => {
   const dispatch = useDispatch();
-  const router = useRouter();
+  const router = useRouter(); // Updated
 
   const handleClick = () => {
     const doctor: SelectedDoctor = {
@@ -74,7 +74,7 @@ const DoctorCard: React.FC<DoctorProps> = ({
       Email,
     };
     dispatch(setSelectedDoctor(doctor));
-    router.push(`/doctor-details/${UserID}`);
+    router.push(`/doctor-details/${UserID}`); // Updated routing
   };
 
   const handleGPSClick = (e: React.MouseEvent) => {

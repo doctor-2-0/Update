@@ -1,19 +1,19 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import axios from "@/lib/axios";
+import CloseIcon from "@mui/icons-material/Close";
 import {
+  Box,
+  CircularProgress,
+  IconButton,
   List,
   ListItem,
   ListItemButton,
   ListItemText,
-  Box,
   Typography,
-  CircularProgress,
-  IconButton,
 } from "@mui/material";
-import axios from "@/lib/axios";
-import ChatMessages from "./ChatMessages";
-import CloseIcon from "@mui/icons-material/Close";
+import React, { useEffect, useState } from "react";
 import io from "socket.io-client";
+import ChatMessages from "./ChatMessages";
 
 interface ChatRoom {
   id: number;
@@ -27,9 +27,7 @@ interface ChatRoom {
     lastName: string;
     id?: number;
   };
-
   patientId?: number;
-
   doctorId?: number;
 }
 
@@ -37,7 +35,8 @@ interface ChatRoomsProps {
   onClose?: () => void;
 }
 
-const socket = io("http://localhost:3000");
+const socket =
+  typeof window !== "undefined" ? io("http://localhost:3000") : null;
 
 const ChatRooms: React.FC<ChatRoomsProps> = ({ onClose }) => {
   const [chatRooms, setChatRooms] = useState<ChatRoom[]>([]);
@@ -49,11 +48,15 @@ const ChatRooms: React.FC<ChatRoomsProps> = ({ onClose }) => {
 
   const getRoomAndJoin = (chatRoom: ChatRoom) => {
     setSelectedRoom(chatRoom.id);
-    socket.emit("join", chatRoom.id);
+    if (socket) {
+      socket.emit("join", chatRoom.id);
+    }
   };
 
   useEffect(() => {
     const checkUserRole = async () => {
+      if (typeof window === "undefined") return;
+
       const token = localStorage.getItem("token");
       if (!token) {
         setError("No token found. Please log in again.");
@@ -90,13 +93,12 @@ const ChatRooms: React.FC<ChatRoomsProps> = ({ onClose }) => {
 
   useEffect(() => {
     const fetchChatRooms = async () => {
-      if (isDoctor === null) return; // Wait until we know the user role
+      if (isDoctor === null) return;
 
       try {
         const response = await axios.get("/chatroom", {
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         });
-        console.log("API response:", response.data);
         setChatRooms(response.data);
         setLoading(false);
       } catch (error) {
@@ -112,30 +114,20 @@ const ChatRooms: React.FC<ChatRoomsProps> = ({ onClose }) => {
   }, [isDoctor]);
 
   const getDisplayName = (room: ChatRoom) => {
-    console.log("Room data:", room);
     if (isDoctor) {
-      if (room.patient) {
-        return `${room.patient.firstName} ${room.patient.lastName}`;
-      } else if (room.patientId) {
-        return `Patient ID: ${room.patientId}`;
-      } else {
-        return "Unknown Patient";
-      }
+      return room.patient
+        ? `${room.patient.firstName} ${room.patient.lastName}`
+        : `Patient ID: ${room.patientId || "Unknown"}`;
     } else {
-      if (room.doctor) {
-        return `Dr. ${room.doctor.firstName} ${room.doctor.lastName}`;
-      } else if (room.doctorId) {
-        return `Doctor ID: ${room.doctorId}`;
-      } else {
-        return "Unknown Doctor";
-      }
+      return room.doctor
+        ? `Dr. ${room.doctor.firstName} ${room.doctor.lastName}`
+        : `Doctor ID: ${room.doctorId || "Unknown"}`;
     }
   };
 
   const handleMeetLinkCreated = (link: string) => {
     setMeetLink(link);
-    // Send the Meet link as a message in the chat
-    if (selectedRoom) {
+    if (selectedRoom && socket) {
       const messageData = {
         ChatroomID: selectedRoom,
         MessageText: `New Google Meet link: ${link}`,
@@ -167,7 +159,6 @@ const ChatRooms: React.FC<ChatRoomsProps> = ({ onClose }) => {
 
   return (
     <Box sx={{ display: "flex", height: "100%" }}>
-      {/* Chat Rooms List */}
       <Box sx={{ width: 250, borderRight: "1px solid #ccc" }}>
         <Box
           sx={{
@@ -185,7 +176,6 @@ const ChatRooms: React.FC<ChatRoomsProps> = ({ onClose }) => {
           )}
         </Box>
 
-        {/* Loading State */}
         {loading ? (
           <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}>
             <CircularProgress />
@@ -208,14 +198,9 @@ const ChatRooms: React.FC<ChatRoomsProps> = ({ onClose }) => {
         )}
       </Box>
 
-      {/* Chat Messages Section */}
       {selectedRoom ? (
         <Box sx={{ flexGrow: 1, display: "flex", flexDirection: "column" }}>
-          <ChatMessages
-            socket={socket}
-            roomId={selectedRoom}
-            meetLink={meetLink}
-          />
+          <ChatMessages roomId={selectedRoom} meetLink={meetLink} />
         </Box>
       ) : (
         <Box

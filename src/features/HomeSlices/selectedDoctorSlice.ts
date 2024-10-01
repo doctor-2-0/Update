@@ -1,6 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
-
 export interface SelectedDoctor {
   UserID: number;
   FirstName: string;
@@ -12,8 +11,6 @@ export interface SelectedDoctor {
   LocationLongitude: number;
   Email: any;
 }
-
-
 
 const initialState: SelectedDoctor = {
   UserID: 0,
