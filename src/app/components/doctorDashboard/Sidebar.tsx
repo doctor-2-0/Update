@@ -32,34 +32,32 @@ const Sidebar: React.FC = () => {
     {
       text: "Home",
       icon: <HomeIcon />,
-      onClick: () => router.push("/app/components/Home/Home.tsx"),
+      onClick: () => router.push("/"),
     },
     {
       text: "Overview",
       icon: <DashboardIcon />,
-      onClick: () => router.push("/app/components/doctorDashboard/Overview"),
+      onClick: () => router.push("/doctor/dashboard"),
     },
     {
       text: "Appointment",
       icon: <EventIcon />,
-      onClick: () => router.push("/app/components/doctorDashboard/Appointment"),
+      onClick: () => router.push("/api/appointments/route"),
     },
     {
       text: "My Patients",
       icon: <PersonIcon />,
-      onClick: () =>
-        router.push("/app/components/doctorDashboard/RecentPatients"),
+      onClick: () => router.push("/doctor/patients"),
     },
     {
       text: "Schedule Timings",
       icon: <EventIcon />,
-      onClick: () =>
-        router.push("/app/components/doctorDashboard/DoctorAvailability"),
+      onClick: () => router.push("/doctor/schedule"),
     },
     {
       text: "Payments",
       icon: <PaymentIcon />,
-      onClick: () => router.push("/payments"),
+      onClick: () => router.push("/doctor/payments"),
     },
     {
       text: "Messages",
@@ -74,7 +72,7 @@ const Sidebar: React.FC = () => {
     {
       text: "Settings",
       icon: <SettingsIcon />,
-      onClick: () => router.push("/settings"),
+      onClick: () => router.push("/doctor/settings"),
     },
   ];
 
