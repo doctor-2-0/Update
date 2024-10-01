@@ -1,18 +1,21 @@
-import React, { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { fetchDoctors } from "@/features/HomeSlices/doctorsSlice";
+import { AppDispatch, RootState } from "@/lib/store";
 import {
   Box,
+  CircularProgress,
   Container,
   Grid,
-  Typography,
-  CircularProgress,
   Pagination,
+  Typography,
 } from "@mui/material";
 import { styled } from "@mui/system";
-import DoctorCard from "./DoctorCard";
-import { fetchDoctors } from "@/features/HomeSlices/doctorsSlice";
-import { RootState, AppDispatch } from "@/lib/store";
-import { GetServerSideProps } from "next";
+import dynamic from "next/dynamic";
+import Head from "next/head";
+import React, { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+
+// Dynamically import DoctorCard to improve page performance
+const DoctorCard = dynamic(() => import("./DoctorCard"));
 
 const DoctorsWrapper = styled(Box)(({ theme }) => ({
   backgroundColor: theme.palette.background.paper,
@@ -74,16 +77,23 @@ const AllDoctors: React.FC<AllDoctorsProps> = ({ doctors }) => {
   };
 
   return (
-    <DoctorsWrapper>
-      <Container maxWidth="lg">
-        <TitleWrapper>
-          <GradientTitle variant="h2" align="center">
-            Our Doctors
-          </GradientTitle>
-        </TitleWrapper>
-        <Grid container spacing={4}>
-          {currentDoctors.map((doctor) => {
-            return (
+    <>
+      <Head>
+        <title>Our Doctors</title>
+        <meta
+          name="description"
+          content="Browse our list of experienced doctors."
+        />
+      </Head>
+      <DoctorsWrapper>
+        <Container maxWidth="lg">
+          <TitleWrapper>
+            <GradientTitle variant="h2" align="center">
+              Our Doctors
+            </GradientTitle>
+          </TitleWrapper>
+          <Grid container spacing={4}>
+            {currentDoctors.map((doctor) => (
               <Grid item key={doctor.id} xs={12} sm={6} md={3}>
                 <DoctorCard
                   UserID={doctor.id}
@@ -99,31 +109,31 @@ const AllDoctors: React.FC<AllDoctorsProps> = ({ doctors }) => {
                   Email={doctor.email}
                 />
               </Grid>
-            );
-          })}
-        </Grid>
-        <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}>
-          <Pagination
-            count={pageCount}
-            page={page}
-            onChange={handleChangePage}
-            color="primary"
-          />
-        </Box>
-      </Container>
-    </DoctorsWrapper>
+            ))}
+          </Grid>
+          <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}>
+            <Pagination
+              count={pageCount}
+              page={page}
+              onChange={handleChangePage}
+              color="primary"
+            />
+          </Box>
+        </Container>
+      </DoctorsWrapper>
+    </>
   );
 };
 
-export const getServerSideProps: GetServerSideProps = async (context) => {
-  const response = await fetch("https://api.example.com/doctors"); // Adjust your API call
-  const doctors = await response.json();
+// export const getServerSideProps: GetServerSideProps = async (context) => {
+//   const response = await fetch("https://api.example.com/doctors"); // Adjust your API call
+//   const doctors = await response.json();
 
-  return {
-    props: {
-      doctors,
-    },
-  };
-};
+//   return {
+//     props: {
+//       doctors,
+//     },
+//   };
+// };
 
 export default AllDoctors;

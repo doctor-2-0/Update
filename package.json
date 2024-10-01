@@ -34,6 +34,7 @@
     "leaflet-defaulticon-compatibility": "^0.1.2",
     "lodash": "^4.17.21",
     "next": "14.2.13",
+    "next-auth": "^4.24.8",
     "nodemon": "^3.1.7",
     "react": "^18",
     "react-dom": "^18",

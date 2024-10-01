@@ -1,16 +1,17 @@
 "use client";
-import React, { useEffect } from "react";
-import { Grid, Typography, Paper, Box } from "@mui/material";
-import { useSelector, useDispatch } from "react-redux";
-import { RootState, AppDispatch } from "@/lib/store";
-import { login } from "@/features/authSlice";
+
 import { fetchAppointmentsByUserId } from "@/features/appointmentSlice";
-import { useRouter } from "next/navigation"; // Add this import
-import StatCard from "./StatCard";
+import { login } from "@/features/authSlice";
+import { AppDispatch, RootState } from "@/lib/store";
+import { Box, Paper, Typography } from "@mui/material";
+import { useRouter } from "next/navigation";
+import React, { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import AppointmentList from "./AppointmentList";
-import PatientChart from "./PatientChart";
-import RecentPatients from "./RecentPatients";
 import Sidebar from "./Sidebar";
+import StatCard from "./StatCard";
+// import { AppointmentsState } from "../../features/appointmentSlice";
+import ChatRooms from "./ChatRooms";
 
 const Dashboard: React.FC = () => {
   const router = useRouter(); // Add this line
@@ -23,7 +24,8 @@ const Dashboard: React.FC = () => {
   );
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
+    const token =
+      typeof window !== "undefined" ? localStorage.getItem("token") : null;
     if (token && !isAuthenticated && !loading) {
       dispatch(login({ token }))
         .unwrap()
@@ -50,58 +52,60 @@ const Dashboard: React.FC = () => {
   };
 
   return (
-    <Box sx={{ display: "flex", flexGrow: 1 }}>
-      <Sidebar /> {/* Render the Sidebar on the left */}
-      <Box sx={{ flexGrow: 1, p: 2 }}>
-        <Typography variant="h4" gutterBottom>
+    <Box sx={{ display: "flex", height: "100vh" }}>
+      <Sidebar />
+      <Box
+        sx={{
+          flexGrow: 1,
+          p: 2,
+          display: "flex",
+          flexDirection: "column",
+          gap: 1,
+          overflow: "auto",
+        }}
+      >
+        <Typography variant="h5" gutterBottom>
           {getWelcomeMessage()}
         </Typography>
-        <Typography variant="subtitle1" gutterBottom>
+        <Typography variant="body2" gutterBottom>
           Have a nice day at great work!
         </Typography>
-        <Grid container spacing={3}>
-          <Grid item xs={12} sm={6} md={3}>
+        <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
+          <Box sx={{ flex: "1 1 150px", minWidth: "150px" }}>
             <StatCard
               title="Appointments"
               value={appointments.length.toString()}
               color="#8e44ad"
             />
-          </Grid>
-          <Grid item xs={12} sm={6} md={3}>
+          </Box>
+          <Box sx={{ flex: "1 1 150px", minWidth: "150px" }}>
             <StatCard title="Total Patients" value="N/A" color="#e74c3c" />
-          </Grid>
-          <Grid item xs={12} sm={6} md={3}>
+          </Box>
+          <Box sx={{ flex: "1 1 150px", minWidth: "150px" }}>
             <StatCard title="Clinic Consulting" value="N/A" color="#f39c12" />
-          </Grid>
-          <Grid item xs={12} sm={6} md={3}>
+          </Box>
+          <Box sx={{ flex: "1 1 150px", minWidth: "150px" }}>
             <StatCard title="Video Consulting" value="N/A" color="#3498db" />
-          </Grid>
-        </Grid>
-        <Grid container spacing={3} sx={{ mt: 2 }}>
-          <Grid item xs={12} md={8}>
-            <Paper sx={{ p: 2 }}>
-              {loadingApp ? (
-                <Typography>Loading appointments...</Typography>
-              ) : errorApp ? (
-                <Typography color="error">{errorApp}</Typography>
-              ) : (
-                <AppointmentList appointments={appointments} />
-              )}
-            </Paper>
-          </Grid>
-          <Grid item xs={12} md={4}>
-            <Paper sx={{ p: 2 }}>
-              <PatientChart />
-            </Paper>
-          </Grid>
-        </Grid>
-        <Grid container spacing={3} sx={{ mt: 2 }}>
-          <Grid item xs={12}>
-            <Paper sx={{ p: 2 }}>
-              <RecentPatients />
-            </Paper>
-          </Grid>
-        </Grid>
+          </Box>
+        </Box>
+        <Box
+          sx={{ display: "flex", flexDirection: "row", gap: 1, flexGrow: 1 }}
+        >
+          <Paper sx={{ flex: 1, p: 1, overflow: "auto" }}>
+            {loadingApp ? (
+              <Typography variant="body2">Loading appointments...</Typography>
+            ) : errorApp ? (
+              <Typography variant="body2" color="error">
+                {errorApp}
+              </Typography>
+            ) : (
+              <AppointmentList appointments={appointments} />
+            )}
+          </Paper>
+          <Paper sx={{ flex: 1, p: 1, overflow: "auto" }}>
+            <ChatRooms />
+          </Paper>
+        </Box>
       </Box>
     </Box>
   );

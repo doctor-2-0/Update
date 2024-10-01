@@ -1,3 +1,5 @@
+import { Send as SendIcon } from "@mui/icons-material";
+=======
 import React, { useEffect, useState, useRef } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { format } from "date-fns";
@@ -5,13 +7,22 @@ import Webcam from "react-webcam";
 import Peer from "simple-peer";
 
 import {
+  Avatar,
   Box,
-  Typography,
-  TextField,
   Button,
+  Divider,
+  Link,
   List,
   ListItem,
   Paper,
+  TextField,
+  Typography,
+} from "@mui/material";
+import axios from "axios";
+import { useRouter } from "next/router";
+import React, { useEffect, useRef, useState } from "react";
+import io from "socket.io-client";
+=======
   Avatar,
   Divider,
   IconButton,
@@ -45,10 +56,10 @@ interface Message {
 
 interface ChatMessagesProps {
   roomId: number;
-  socket: any;
   meetLink: string | null;
 }
 
+const ChatMessages: React.FC<ChatMessagesProps> = ({ roomId, meetLink }) => {
 const ChatMessages: React.FC<ChatMessagesProps> = ({
   roomId,
   socket,
@@ -58,7 +69,52 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({
   const { auth, checkAuth } = useAuth();
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState("");
+  const [socket, setSocket] = useState<any>(null);
+  const [userData, setUserData] = useState({
+    userId: 0,
+    username: "",
+    firstName: "",
+  });
   const messagesEndRef = useRef<null | HTMLDivElement>(null);
+  const router = useRouter();
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const userId = parseInt(localStorage.getItem("userId") || "0", 10);
+      const username = localStorage.getItem("Username") || "";
+      const firstName = localStorage.getItem("FirstName") || "";
+      setUserData({ userId, username, firstName });
+
+      const newSocket = io("http://localhost:5000");
+      setSocket(newSocket);
+
+      const fetchMessages = async () => {
+        try {
+          const token = localStorage.getItem("token");
+          const response = await axios.get(
+            `http://localhost:5000/api/chats/${roomId}/messages`,
+            {
+              headers: { Authorization: `Bearer ${token}` },
+            }
+          );
+          setMessages(response.data);
+        } catch (error) {
+          console.error("Error fetching messages:", error);
+        }
+      };
+
+      fetchMessages();
+
+      newSocket.on("chat_message", (message: Message) => {
+        setMessages((prevMessages) => [...prevMessages, message]);
+      });
+
+      return () => {
+        newSocket.off("chat_message");
+        newSocket.disconnect();
+      };
+    }
+  }, [roomId]);
   const [isCallActive, setIsCallActive] = useState(false);
   const [localStream, setLocalStream] = useState<MediaStream | null>(null);
   const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null);
@@ -297,6 +353,47 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({
     console.log("newMessage:", newMessage);
 
     const messageData: Partial<Message> = {
+      ChatroomID: roomId,
+      MessageText: newMessage.trim(),
+      Sender: {
+        UserID: userData.userId,
+        Username: userData.username,
+        FirstName: userData.firstName,
+      },
+      SentAt: new Date().toISOString(),
+      MessageID: `temp-${Date.now()}`,
+    };
+
+    try {
+      if (socket) {
+        socket.emit("chat_message", messageData);
+        setNewMessage("");
+        setMessages((prevMessages) => [
+          ...prevMessages,
+          messageData as Message,
+        ]);
+
+        const token = localStorage.getItem("token");
+        const response = await axios.post(
+          "http://localhost:5000/api/chats/message",
+          { chatroomId: roomId, messageText: newMessage.trim() },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+        setMessages((prevMessages) =>
+          prevMessages.map((msg) =>
+            msg.MessageID === messageData.MessageID
+              ? { ...msg, MessageID: response.data.MessageID }
+              : msg
+          )
+        );
+      }
+    } catch (error) {
+
       chatroomId: roomId,
       senderId: Number(auth.user.id),
       messageText: newMessage.trim(),
@@ -343,7 +440,8 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({
         console.error("Response status:", error.response.status);
       }
       setMessages((prevMessages) =>
-        prevMessages.filter((msg) => msg.id !== messageData.id)
+        prevMessages.filter((msg) => msg.MessageID !== messageData.MessageID)
+
       );
     }
   };
@@ -512,6 +610,74 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({
           </Box>
         </Box>
       )}
+      <List sx={{ flex: 1, overflow: "auto", p: 2 }}>
+        {messages.map((message, index) => {
+          const isSender = message.Sender.UserID === userData.userId;
+
+          return (
+            <React.Fragment key={`${message.MessageID}-${message.SentAt}`}>
+              {index > 0 &&
+                messages[index - 1].Sender.UserID !== message.Sender.UserID && (
+                  <Divider sx={{ my: 2 }} />
+                )}
+              <ListItem
+                alignItems="flex-start"
+                sx={{
+                  justifyContent: isSender ? "flex-end" : "flex-start",
+                  flexDirection: isSender ? "row-reverse" : "row",
+                }}
+              >
+                <Avatar
+                  sx={{
+                    bgcolor: "primary.main",
+                    color: "white",
+                    fontSize: "1.5rem",
+                    mr: isSender ? 0 : 2,
+                    ml: isSender ? 2 : 0,
+                  }}
+                >
+                  {message.Sender.FirstName[0]}
+                </Avatar>
+                <Box
+                  sx={{
+                    bgcolor: isSender ? "primary.light" : "grey.200",
+                    color: isSender ? "white" : "black",
+                    p: 1.5,
+                    borderRadius: 2,
+                    maxWidth: "70%",
+                  }}
+                >
+                  <ListItemText
+                    primary={
+                      <Typography
+                        component="span"
+                        variant="body2"
+                        fontWeight="bold"
+                      >
+                        {message.Sender.Username}
+                      </Typography>
+                    }
+                    secondary={
+                      <>
+                        <Typography component="span" variant="body2">
+                          {message.MessageText}
+                        </Typography>
+                        <Typography
+                          component="span"
+                          variant="caption"
+                          color="text.secondary"
+                          sx={{ display: "block", mt: 0.5 }}
+                        >
+                          {new Date(message.SentAt).toLocaleString()}
+                        </Typography>
+                      </>
+                    }
+                  />
+                </Box>
+              </ListItem>
+            </React.Fragment>
+          );
+        })}
       <List
         sx={{
           flex: 1,
