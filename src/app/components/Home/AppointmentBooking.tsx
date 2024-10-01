@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { TextField, Button, Typography, Grid, MenuItem } from "@mui/material";
+import { TextField, Button, Typography, MenuItem } from "@mui/material";
 import axios from "@/lib/axios";
 import { SelectedDoctor } from "@/features/HomeSlices/selectedDoctorSlice";
 import { isAxiosError } from "axios";
@@ -20,15 +20,16 @@ const AppointmentBooking: React.FC<AppointmentBookingProps> = ({ doctor }) => {
   const [selectedMonth, setSelectedMonth] = useState<string>("");
   const [selectedDay, setSelectedDay] = useState<string>("");
   const [selectedTime, setSelectedTime] = useState<string>("");
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
   useEffect(() => {
     const fetchAvailableSlots = async () => {
       if (doctor.UserID) {
         try {
-          const response = await axios.get<AvailableSlot[]>(
-            `/availability/slots/${doctor.UserID}`
-          );
-          console.log("Available slots:", response.data);
+          const response = await axios.get<AvailableSlot[]>(`/availability/slots/${doctor.UserID}`);
           setAvailableSlots(response.data);
+          console.log("Available slots:", response.data);
         } catch (error) {
           console.error("Failed to fetch available slots", error);
         }
@@ -61,16 +62,8 @@ const AppointmentBooking: React.FC<AppointmentBookingProps> = ({ doctor }) => {
   };
 
   const handleSubmit = async () => {
-    if (
-      selectedYear &&
-      selectedMonth &&
-      selectedDay &&
-      selectedTime &&
-      doctor.UserID
-    ) {
-      const appointmentDate = new Date(
-        `${selectedYear}-${selectedMonth}-${selectedDay}T${selectedTime}`
-      );
+    if (selectedYear && selectedMonth && selectedDay && selectedTime && doctor.UserID) {
+      const appointmentDate = new Date(`${selectedYear}-${selectedMonth}-${selectedDay}T${selectedTime}`);
       const appointmentData = {
         DoctorID: doctor.UserID,
         AppointmentDate: appointmentDate.toISOString(),
@@ -79,35 +72,23 @@ const AppointmentBooking: React.FC<AppointmentBookingProps> = ({ doctor }) => {
 
       try {
         const token = localStorage.getItem("token");
-        const response = await axios.post(
-          "http://localhost:5000/api/appointments",
-          appointmentData,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
+        const response = await axios.post("http://localhost:5000/api/appointments", appointmentData, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
         console.log("Appointment created successfully", response.data);
-        // Add success handling here (e.g., show a success message, clear form, etc.)
+        setSuccessMessage("Appointment created successfully!");
+        setErrorMessage(null);
       } catch (error) {
         if (isAxiosError(error)) {
-          console.error(
-            "Failed to create appointment",
-            error.response?.data || error.message
-          );
-          alert(
-            `Failed to create appointment: ${
-              error.response?.data?.message || error.message
-            }`
-          );
+          setErrorMessage(error.response?.data?.message || "Failed to create appointment.");
         } else {
-          console.error("Failed to create appointment", error);
-          alert("Failed to create appointment: An unexpected error occurred");
+          setErrorMessage("Failed to create appointment: An unexpected error occurred.");
         }
       }
     } else {
-      alert("Please select all required fields");
+      setErrorMessage("Please select all required fields.");
     }
   };
 
@@ -123,17 +104,15 @@ const AppointmentBooking: React.FC<AppointmentBookingProps> = ({ doctor }) => {
               return (date.getMonth() + 1).toString().padStart(2, "0");
             case "day":
               return date.getDate().toString().padStart(2, "0");
+            default:
+              return "";
           }
         })
       )
     ).sort();
   };
 
-  const getFilteredValues = (
-    key: "month" | "day",
-    filterKey: "year" | "month",
-    filterValue: string
-  ) => {
+  const getFilteredValues = (key: "month" | "day", filterKey: "year" | "month", filterValue: string) => {
     return Array.from(
       new Set(
         availableSlots
@@ -155,15 +134,9 @@ const AppointmentBooking: React.FC<AppointmentBookingProps> = ({ doctor }) => {
     ).sort();
   };
 
-  const getAvailableTimesForDate = (
-    year: string,
-    month: string,
-    day: string
-  ) => {
+  const getAvailableTimesForDate = (year: string, month: string, day: string) => {
     const selectedDate = `${year}-${month}-${day}`;
-    const slotsForDate = availableSlots.filter(
-      (slot) => slot.date === selectedDate
-    );
+    const slotsForDate = availableSlots.filter((slot) => slot.date === selectedDate);
 
     const availableTimes: string[] = [];
     slotsForDate.forEach((slot) => {
@@ -184,10 +157,10 @@ const AppointmentBooking: React.FC<AppointmentBookingProps> = ({ doctor }) => {
       <Typography variant="h5" gutterBottom>
         Book Appointment
       </Typography>
+      {errorMessage && <Typography color="error">{errorMessage}</Typography>}
+      {successMessage && <Typography color="success">{successMessage}</Typography>}
       {availableSlots.length === 0 ? (
-        <Typography variant="body1">
-          No available slots for this doctor.
-        </Typography>
+        <Typography variant="body1">No available slots for this doctor.</Typography>
       ) : (
         <>
           <TextField
@@ -213,7 +186,7 @@ const AppointmentBooking: React.FC<AppointmentBookingProps> = ({ doctor }) => {
             onChange={handleMonthChange}
             margin="normal"
             variant="outlined"
-            disabled={!selectedYear}
+            disabled={selectedYear === ""}
           >
             {getFilteredValues("month", "year", selectedYear).map((month) => (
               <MenuItem key={month} value={month}>
@@ -247,11 +220,7 @@ const AppointmentBooking: React.FC<AppointmentBookingProps> = ({ doctor }) => {
             variant="outlined"
             disabled={!selectedDay}
           >
-            {getAvailableTimesForDate(
-              selectedYear,
-              selectedMonth,
-              selectedDay
-            ).map((time) => (
+            {getAvailableTimesForDate(selectedYear, selectedMonth, selectedDay).map((time) => (
               <MenuItem key={time} value={time}>
                 {time}
               </MenuItem>
