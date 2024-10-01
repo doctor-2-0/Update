@@ -29,18 +29,20 @@ const initialState: AuthState = {
   error: null,
 };
 
+// Register action
 export const register = createAsyncThunk(
   "auth/register",
   async (userData: Partial<User>, { rejectWithValue }) => {
     try {
-      const response = await axios.post("auth/register", userData);
+      const response = await axios.post("/api/auth/register", userData); // API routes for Next.js
       return response.data;
     } catch (error: any) {
-      return rejectWithValue(error.response.data.message);
+      return rejectWithValue(error.response?.data?.message || "Registration failed");
     }
   }
 );
 
+// Login action
 export const login = createAsyncThunk(
   "auth/login",
   async (
@@ -55,24 +57,21 @@ export const login = createAsyncThunk(
     try {
       let response;
       if (credentials.token) {
-        response = await axios.get("auth/session", {
+        response = await axios.get("/api/auth/session", {
           headers: { Authorization: `Bearer ${credentials.token}` },
         });
       } else {
-        response = await axios.post("auth/login", credentials);
+        response = await axios.post("/api/auth/login", credentials);
       }
-
       if (response.data.token && typeof window !== "undefined") {
         localStorage.setItem("token", response.data.token);
       }
-      console.log("Login response:", response.data);
 
       return {
         user: response.data.user,
         token: response.data.token,
       };
     } catch (error: any) {
-      console.error("Login error:", error);
       if (typeof window !== "undefined") {
         localStorage.removeItem("token");
       }
@@ -81,7 +80,8 @@ export const login = createAsyncThunk(
   }
 );
 
-const authSlice = createSlice({
+// Logout action
+export const authSlice = createSlice({
   name: "auth",
   initialState,
   reducers: {
@@ -89,7 +89,9 @@ const authSlice = createSlice({
       state.user = null;
       state.token = null;
       state.isAuthenticated = false;
-      localStorage.removeItem("token");
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("token");
+      }
     },
   },
   extraReducers: (builder) => {
@@ -118,7 +120,6 @@ const authSlice = createSlice({
       .addCase(
         login.fulfilled,
         (state, action: PayloadAction<{ user: User; token: string }>) => {
-          console.log("Login fulfilled:", action.payload);
           state.user = action.payload.user;
           state.token = action.payload.token;
           state.loading = false;
