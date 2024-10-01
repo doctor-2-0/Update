@@ -1,4 +1,4 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { createSlice } from "@reduxjs/toolkit";
 
 interface Testimonial {
   id: number;
@@ -15,20 +15,17 @@ const initialState: TestimonialsState = {
   testimonials: [
     {
       id: 1,
-      name: 'Jane Smith',
-      content: 'Great experience with DocConnect. Highly recommended!',
-      image: '/path-to-testimonial-image.jpg',
+      name: "Jane Smith",
+      content: "Great experience with DocConnect. Highly recommended!",
+      image: "/path-to-testimonial-image.jpg",
     },
-    // Add more testimonials here
   ],
 };
 
 const testimonialsSlice = createSlice({
-  name: 'testimonials',
+  name: "testimonials",
   initialState,
-  reducers: {
-    // Add reducers if needed
-  },
+  reducers: {},
 });
 
 export default testimonialsSlice.reducer;
