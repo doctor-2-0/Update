@@ -1,22 +1,22 @@
-import React, { useEffect, useState, useRef } from "react";
+import { Send as SendIcon } from "@mui/icons-material";
 import {
+  Avatar,
   Box,
-  Typography,
-  TextField,
   Button,
+  Divider,
+  Link,
   List,
   ListItem,
   ListItemText,
   Paper,
-  Avatar,
-  Divider,
-  Link,
+  TextField,
+  Typography,
 } from "@mui/material";
-import { Send as SendIcon } from "@mui/icons-material";
-import axios from "@/lib/axios";
-import { RootState, AppDispatch } from "@/lib/store";
-import { useSelector, useDispatch } from "react-redux";
-import { login } from "@/features/authSlice";
+import axios from "axios";
+import { useRouter } from "next/router";
+import React, { useEffect, useRef, useState } from "react";
+import io from "socket.io-client";
+
 interface Message {
   MessageID: number | string;
   ChatroomID: number;
@@ -34,47 +34,58 @@ interface Message {
 
 interface ChatMessagesProps {
   roomId: number;
-  socket: any;
   meetLink: string | null;
 }
 
-const ChatMessages: React.FC<ChatMessagesProps> = ({
-  roomId,
-  socket,
-  meetLink,
-}) => {
-  const dispatch = useDispatch() as AppDispatch;
-  const { user } = useSelector((state: RootState) => state.Auth);
-  console.log("user aaaaaaaaaaaaaaaaaaaaaaaaaaa ", user);
-
+const ChatMessages: React.FC<ChatMessagesProps> = ({ roomId, meetLink }) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState("");
+  const [socket, setSocket] = useState<any>(null);
+  const [userData, setUserData] = useState({
+    userId: 0,
+    username: "",
+    firstName: "",
+  });
   const messagesEndRef = useRef<null | HTMLDivElement>(null);
-
-  const fetchMessages = async () => {
-    try {
-      const response = await axios.get(`chatroom/messages/${roomId}`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-      });
-      setMessages(response.data);
-    } catch (error) {
-      console.error("Error fetching messages:", error);
-    }
-  };
+  const router = useRouter();
 
   useEffect(() => {
-    const token = localStorage.getItem("token") || undefined;
-    dispatch(login({ token }));
-    fetchMessages();
+    if (typeof window !== "undefined") {
+      const userId = parseInt(localStorage.getItem("userId") || "0", 10);
+      const username = localStorage.getItem("Username") || "";
+      const firstName = localStorage.getItem("FirstName") || "";
+      setUserData({ userId, username, firstName });
 
-    socket.on("chat_message", (message: Message) => {
-      setMessages((prevMessages) => [...prevMessages, message]);
-    });
+      const newSocket = io("http://localhost:5000");
+      setSocket(newSocket);
 
-    return () => {
-      socket.off("chat_message");
-    };
-  }, [roomId, socket]);
+      const fetchMessages = async () => {
+        try {
+          const token = localStorage.getItem("token");
+          const response = await axios.get(
+            `http://localhost:5000/api/chats/${roomId}/messages`,
+            {
+              headers: { Authorization: `Bearer ${token}` },
+            }
+          );
+          setMessages(response.data);
+        } catch (error) {
+          console.error("Error fetching messages:", error);
+        }
+      };
+
+      fetchMessages();
+
+      newSocket.on("chat_message", (message: Message) => {
+        setMessages((prevMessages) => [...prevMessages, message]);
+      });
+
+      return () => {
+        newSocket.off("chat_message");
+        newSocket.disconnect();
+      };
+    }
+  }, [roomId]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -83,51 +94,51 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({
   const handleSendMessage = async () => {
     if (!newMessage.trim()) return;
 
-    console.log("user aaaaaaaaaaaaaaaaaaaaaaaaaaa ", user);
     const messageData: Partial<Message> = {
       ChatroomID: roomId,
       MessageText: newMessage.trim(),
       Sender: {
-        UserID: parseInt(localStorage.getItem("userId") || "0", 10),
-        Username: localStorage.getItem("Username") || "",
-        FirstName: localStorage.getItem("FirstName") || "",
+        UserID: userData.userId,
+        Username: userData.username,
+        FirstName: userData.firstName,
       },
       SentAt: new Date().toISOString(),
-      MessageID: `temp-${Date.now()}`, // Temporary ID before server confirmation
+      MessageID: `temp-${Date.now()}`,
     };
 
     try {
-      socket.emit("chat_message", messageData); // Send message to socket
-      setNewMessage(""); // Clear input after sending
-      setMessages((prevMessages) => [...prevMessages, messageData as Message]);
+      if (socket) {
+        socket.emit("chat_message", messageData);
+        setNewMessage("");
+        setMessages((prevMessages) => [
+          ...prevMessages,
+          messageData as Message,
+        ]);
 
-      const response = await axios.post(
-        "chatroom/message",
-        {
-          chatroomId: roomId,
-          messageText: newMessage.trim(),
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      // Update message with the correct MessageID returned by the server
-      setMessages((prevMessages) =>
-        prevMessages.map((msg) =>
-          msg.MessageID === messageData.MessageID
-            ? { ...msg, MessageID: response.data.MessageID }
-            : msg
-        )
-      );
+        const token = localStorage.getItem("token");
+        const response = await axios.post(
+          "http://localhost:5000/api/chats/message",
+          { chatroomId: roomId, messageText: newMessage.trim() },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+        setMessages((prevMessages) =>
+          prevMessages.map((msg) =>
+            msg.MessageID === messageData.MessageID
+              ? { ...msg, MessageID: response.data.MessageID }
+              : msg
+          )
+        );
+      }
     } catch (error) {
       console.error("Error sending message:", error);
       setMessages((prevMessages) =>
         prevMessages.filter((msg) => msg.MessageID !== messageData.MessageID)
-      ); // Remove failed messages
+      );
     }
   };
 
@@ -159,9 +170,7 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({
       )}
       <List sx={{ flex: 1, overflow: "auto", p: 2 }}>
         {messages.map((message, index) => {
-          const isSender =
-            message.Sender.UserID ===
-            parseInt(localStorage.getItem("userId") || "0", 10);
+          const isSender = message.Sender.UserID === userData.userId;
 
           return (
             <React.Fragment key={`${message.MessageID}-${message.SentAt}`}>
@@ -185,8 +194,7 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({
                     ml: isSender ? 2 : 0,
                   }}
                 >
-                  {message.Sender.FirstName[0]}{" "}
-                  {/* First letter of the sender's first name */}
+                  {message.Sender.FirstName[0]}
                 </Avatar>
                 <Box
                   sx={{
