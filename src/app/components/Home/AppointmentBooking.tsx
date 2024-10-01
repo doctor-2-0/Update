@@ -12,7 +12,7 @@ interface AvailableSlot {
 
 interface AppointmentBookingProps {
   doctor: SelectedDoctor;
-}
+} 
 
 const AppointmentBooking: React.FC<AppointmentBookingProps> = ({ doctor }) => {
   const [availableSlots, setAvailableSlots] = useState<AvailableSlot[]>([]);
@@ -34,7 +34,6 @@ const AppointmentBooking: React.FC<AppointmentBookingProps> = ({ doctor }) => {
         }
       }
     };
-
     fetchAvailableSlots();
   }, [doctor.UserID]);
 
@@ -73,8 +72,8 @@ const AppointmentBooking: React.FC<AppointmentBookingProps> = ({ doctor }) => {
       );
       const appointmentData = {
         DoctorID: doctor.UserID,
-        AppointmentDate: appointmentDate.toISOString(),
-        DurationMinutes: 60, // Set duration to 1 hour
+        AppointmentDate: appointmentDate.toISOString(), 
+           DurationMinutes: 60, // Set duration to 1 hour
       };
 
       try {
