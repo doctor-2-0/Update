@@ -37,7 +37,7 @@ const Sidebar: React.FC = () => {
     {
       text: "Overview",
       icon: <DashboardIcon />,
-      onClick: () => router.push("/doctor/dashboard"),
+      onClick: () => router.push("/dashboard"),
     },
     {
       text: "Appointment",
@@ -47,7 +47,7 @@ const Sidebar: React.FC = () => {
     {
       text: "My Patients",
       icon: <PersonIcon />,
-      onClick: () => router.push("/doctor/patients"),
+      onClick: () => router.push("/doctorDashboard/PatientChat"),
     },
     {
       text: "Schedule Timings",
@@ -72,7 +72,7 @@ const Sidebar: React.FC = () => {
     {
       text: "Settings",
       icon: <SettingsIcon />,
-      onClick: () => router.push("/doctor/settings"),
+      onClick: () => router.push("/api/settings/route"),
     },
   ];
 

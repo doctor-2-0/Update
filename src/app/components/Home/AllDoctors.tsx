@@ -9,9 +9,13 @@ import {
   Pagination,
 } from "@mui/material";
 import { styled } from "@mui/system";
-import DoctorCard from "./DoctorCard";
+import dynamic from "next/dynamic";
 import { fetchDoctors } from "@/features/HomeSlices/doctorsSlice";
 import { RootState, AppDispatch } from "@/lib/store";
+import Head from "next/head";
+
+// Dynamically import DoctorCard to improve page performance
+const DoctorCard = dynamic(() => import("./DoctorCard"));
 
 const DoctorsWrapper = styled(Box)(({ theme }) => ({
   backgroundColor: theme.palette.background.paper,
@@ -69,16 +73,20 @@ const AllDoctors: React.FC = () => {
   };
 
   return (
-    <DoctorsWrapper>
-      <Container maxWidth="lg">
-        <TitleWrapper>
-          <GradientTitle variant="h2" align="center">
-            Our Doctors
-          </GradientTitle>
-        </TitleWrapper>
-        <Grid container spacing={4}>
-          {currentDoctors.map((doctor) => {
-            return (
+    <>
+      <Head>
+        <title>Our Doctors</title>
+        <meta name="description" content="Browse our list of experienced doctors." />
+      </Head>
+      <DoctorsWrapper>
+        <Container maxWidth="lg">
+          <TitleWrapper>
+            <GradientTitle variant="h2" align="center">
+              Our Doctors
+            </GradientTitle>
+          </TitleWrapper>
+          <Grid container spacing={4}>
+            {currentDoctors.map((doctor) => (
               <Grid item key={doctor.id} xs={12} sm={6} md={3}>
                 <DoctorCard
                   UserID={doctor.id}
@@ -94,19 +102,19 @@ const AllDoctors: React.FC = () => {
                   Email={doctor.email}
                 />
               </Grid>
-            );
-          })}
-        </Grid>
-        <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}>
-          <Pagination
-            count={pageCount}
-            page={page}
-            onChange={handleChangePage}
-            color="primary"
-          />
-        </Box>
-      </Container>
-    </DoctorsWrapper>
+            ))}
+          </Grid>
+          <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}>
+            <Pagination
+              count={pageCount}
+              page={page}
+              onChange={handleChangePage}
+              color="primary"
+            />
+          </Box>
+        </Container>
+      </DoctorsWrapper>
+    </>
   );
 };
 
