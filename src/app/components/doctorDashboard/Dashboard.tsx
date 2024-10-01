@@ -3,7 +3,7 @@
 import { fetchAppointmentsByUserId } from "@/features/appointmentSlice";
 import { login } from "@/features/authSlice";
 import { AppDispatch, RootState } from "@/lib/store";
-import { Box, Grid, Paper, Typography } from "@mui/material";
+import { Box, Paper, Typography } from "@mui/material";
 import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import AppointmentList from "./AppointmentList";
@@ -54,26 +54,26 @@ const Dashboard: React.FC = () => {
         <Typography variant="subtitle1" gutterBottom>
           Have a nice day at great work!
         </Typography>
-        <Grid container spacing={3}>
-          <Grid item xs={12} sm={6} md={3}>
+        <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                <Box sx={{ flex: 1 }}>
             <StatCard
               title="Appointments"
               value={appointments.length.toString()}
               color="#8e44ad"
             />
-          </Grid>
-          <Grid item xs={12} sm={6} md={3}>
+          </Box>
+          <Box sx={{ flex: 1 }}>
             <StatCard title="Total Patients" value="N/A" color="#e74c3c" />
-          </Grid>
-          <Grid item xs={12} sm={6} md={3}>
+          </Box>
+          <Box sx={{ flex: 1 }}>
             <StatCard title="Clinic Consulting" value="N/A" color="#f39c12" />
-          </Grid>
-          <Grid item xs={12} sm={6} md={3}>
+          </Box>
+          <Box sx={{ flex: 1 }}>
             <StatCard title="Video Consulting" value="N/A" color="#3498db" />
-          </Grid>
-        </Grid>
-        <Grid container spacing={3} sx={{ mt: 2 }}>
-          <Grid item xs={12} md={8}>
+          </Box>
+        </Box>
+        <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+          <Box sx={{ flex: 1 }}>
             <Paper sx={{ p: 2 }}>
               {loadingApp ? (
                 <Typography>Loading appointments...</Typography>
@@ -83,13 +83,13 @@ const Dashboard: React.FC = () => {
                 <AppointmentList appointments={appointments} />
               )}
             </Paper>
-          </Grid>
-          <Grid item xs={12} md={4}>
+          </Box>
+          <Box>
             <Paper sx={{ p: 2 }}>
               <ChatRooms />
             </Paper>
-          </Grid>
-        </Grid>
+          </Box>
+        </Box>
       </Box>
     </Box>
   );
