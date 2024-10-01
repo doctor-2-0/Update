@@ -1,14 +1,16 @@
-import React, { useEffect } from "react";
-import { Grid, Typography, Paper, Box } from "@mui/material";
-import { useSelector, useDispatch } from "react-redux";
-import { RootState, AppDispatch } from "@/lib/store";
-import { login } from "@/features/authSlice";
+"use client";
+
 import { fetchAppointmentsByUserId } from "@/features/appointmentSlice";
-import StatCard from "./StatCard";
+import { login } from "@/features/authSlice";
+import { AppDispatch, RootState } from "@/lib/store";
+import { Box, Grid, Paper, Typography } from "@mui/material";
+import React, { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import AppointmentList from "./AppointmentList";
-import PatientChart from "./PatientChart";
-import RecentPatients from "./RecentPatients";
 import Sidebar from "./Sidebar";
+import StatCard from "./StatCard";
+// import { AppointmentsState } from "../../features/appointmentSlice";
+import ChatRooms from "./ChatRooms";
 
 const Dashboard: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -20,7 +22,8 @@ const Dashboard: React.FC = () => {
   );
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
+    const token =
+      typeof window !== "undefined" ? localStorage.getItem("token") : null;
     if (token && !isAuthenticated && !loading) {
       dispatch(login({ token }))
         .unwrap()
@@ -83,14 +86,7 @@ const Dashboard: React.FC = () => {
           </Grid>
           <Grid item xs={12} md={4}>
             <Paper sx={{ p: 2 }}>
-              <PatientChart />
-            </Paper>
-          </Grid>
-        </Grid>
-        <Grid container spacing={3} sx={{ mt: 2 }}>
-          <Grid item xs={12}>
-            <Paper sx={{ p: 2 }}>
-              <RecentPatients />
+              <ChatRooms />
             </Paper>
           </Grid>
         </Grid>
