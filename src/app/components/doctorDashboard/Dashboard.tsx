@@ -45,50 +45,59 @@ const Dashboard: React.FC = () => {
   };
 
   return (
-    <Box sx={{ display: "flex", flexGrow: 1 }}>
-      <Sidebar /> {/* Render the Sidebar on the left */}
-      <Box sx={{ flexGrow: 1, p: 2 }}>
-        <Typography variant="h4" gutterBottom>
+    <Box sx={{ display: "flex", height: "100vh" }}>
+      <Sidebar />
+      <Box
+        sx={{
+          flexGrow: 1,
+          p: 2,
+          display: "flex",
+          flexDirection: "column",
+          gap: 1,
+          overflow: "auto",
+        }}
+      >
+        <Typography variant="h5" gutterBottom>
           {getWelcomeMessage()}
         </Typography>
-        <Typography variant="subtitle1" gutterBottom>
+        <Typography variant="body2" gutterBottom>
           Have a nice day at great work!
         </Typography>
-        <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                <Box sx={{ flex: 1 }}>
+        <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
+          <Box sx={{ flex: "1 1 150px", minWidth: "150px" }}>
             <StatCard
               title="Appointments"
               value={appointments.length.toString()}
               color="#8e44ad"
             />
           </Box>
-          <Box sx={{ flex: 1 }}>
+          <Box sx={{ flex: "1 1 150px", minWidth: "150px" }}>
             <StatCard title="Total Patients" value="N/A" color="#e74c3c" />
           </Box>
-          <Box sx={{ flex: 1 }}>
+          <Box sx={{ flex: "1 1 150px", minWidth: "150px" }}>
             <StatCard title="Clinic Consulting" value="N/A" color="#f39c12" />
           </Box>
-          <Box sx={{ flex: 1 }}>
+          <Box sx={{ flex: "1 1 150px", minWidth: "150px" }}>
             <StatCard title="Video Consulting" value="N/A" color="#3498db" />
           </Box>
         </Box>
-        <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-          <Box sx={{ flex: 1 }}>
-            <Paper sx={{ p: 2 }}>
-              {loadingApp ? (
-                <Typography>Loading appointments...</Typography>
-              ) : errorApp ? (
-                <Typography color="error">{errorApp}</Typography>
-              ) : (
-                <AppointmentList appointments={appointments} />
-              )}
-            </Paper>
-          </Box>
-          <Box>
-            <Paper sx={{ p: 2 }}>
-              <ChatRooms />
-            </Paper>
-          </Box>
+        <Box
+          sx={{ display: "flex", flexDirection: "row", gap: 1, flexGrow: 1 }}
+        >
+          <Paper sx={{ flex: 1, p: 1, overflow: "auto" }}>
+            {loadingApp ? (
+              <Typography variant="body2">Loading appointments...</Typography>
+            ) : errorApp ? (
+              <Typography variant="body2" color="error">
+                {errorApp}
+              </Typography>
+            ) : (
+              <AppointmentList appointments={appointments} />
+            )}
+          </Paper>
+          <Paper sx={{ flex: 1, p: 1, overflow: "auto" }}>
+            <ChatRooms />
+          </Paper>
         </Box>
       </Box>
     </Box>
