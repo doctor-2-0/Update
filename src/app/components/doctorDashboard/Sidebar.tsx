@@ -32,33 +32,33 @@ const Sidebar: React.FC = () => {
       text: "Home",
       icon: <HomeIcon />,
       onClick: () => router.push("app/components/Home.tsx"), // Adjusted path
+      onClick: () => router.push("/"),
     },
     {
       text: "Overview",
       icon: <DashboardIcon />,
-      onClick: () => router.push("/app/components/doctorDashboard/Dashboard.tsx"),
+      onClick: () => router.push("/dashboard"),
     },
     {
       text: "Appointment",
       icon: <EventIcon />,
-      onClick: () => router.push("/app/components/doctorDashboard/AppointmentList.tsx"),
+    
+      onClick: () => router.push("/api/appointments/route"),
     },
     {
       text: "My Patients",
       icon: <PersonIcon />,
-      onClick: () =>
-        router.push("/app/components/doctorDashboard/RecentPatients.tsx"),
+      onClick: () => router.push("/doctorDashboard/PatientChat"),
     },
     {
       text: "Schedule Timings",
       icon: <EventIcon />,
-      onClick: () =>
-        router.push("/app/components/doctorDashboard/DoctorAvailability.tsx"),
+      onClick: () => router.push("/doctor/schedule"),
     },
     {
       text: "Payments",
       icon: <PaymentIcon />,
-      onClick: () => router.push("/payments"),
+      onClick: () => router.push("/doctor/payments"),
     },
     {
       text: "Messages",
@@ -73,7 +73,7 @@ const Sidebar: React.FC = () => {
     {
       text: "Settings",
       icon: <SettingsIcon />,
-      onClick: () => router.push("/settings"),
+      onClick: () => router.push("/api/settings/route"),
     },
   ];
 
