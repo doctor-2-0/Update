@@ -11,7 +11,6 @@ import {
   IconButton,
 } from "@mui/material";
 import DashboardIcon from "@mui/icons-material/Dashboard";
-// import PeopleIcon from '@mui/icons-material/People';
 import EventIcon from "@mui/icons-material/Event";
 import PaymentIcon from "@mui/icons-material/Payment";
 import MessageIcon from "@mui/icons-material/Message";
@@ -35,6 +34,11 @@ const Sidebar: React.FC = () => {
   };
 
   const menuItems = [
+    {
+      text: "Home",
+      icon: <HomeIcon />,
+      onClick: () => router.push("/"),
+    },
     {
       text: "Overview",
       icon: <DashboardIcon />,

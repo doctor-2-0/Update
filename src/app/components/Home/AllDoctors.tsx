@@ -12,6 +12,7 @@ import { styled } from "@mui/system";
 import DoctorCard from "./DoctorCard";
 import { fetchDoctors } from "@/features/HomeSlices/doctorsSlice";
 import { RootState, AppDispatch } from "@/lib/store";
+import { GetServerSideProps } from "next";
 
 const DoctorsWrapper = styled(Box)(({ theme }) => ({
   backgroundColor: theme.palette.background.paper,
@@ -31,7 +32,11 @@ const GradientTitle = styled(Typography)(({ theme }) => ({
   marginBottom: theme.spacing(2),
 }));
 
-const AllDoctors: React.FC = () => {
+interface AllDoctorsProps {
+  doctors: any[]; // Replace with appropriate type
+}
+
+const AllDoctors: React.FC<AllDoctorsProps> = ({ doctors }) => {
   const dispatch = useDispatch<AppDispatch>();
   const { allDoctors, status, error } = useSelector(
     (state: RootState) => state.doctors
@@ -108,6 +113,17 @@ const AllDoctors: React.FC = () => {
       </Container>
     </DoctorsWrapper>
   );
+};
+
+export const getServerSideProps: GetServerSideProps = async (context) => {
+  const response = await fetch("https://api.example.com/doctors"); // Adjust your API call
+  const doctors = await response.json();
+
+  return {
+    props: {
+      doctors,
+    },
+  };
 };
 
 export default AllDoctors;
