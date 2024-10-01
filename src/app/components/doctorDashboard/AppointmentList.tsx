@@ -1,32 +1,32 @@
-import React, { useState, useEffect } from "react";
-import { useDispatch } from "react-redux";
+import { updateStatus } from "@/features/userSlice";
+import { AppDispatch } from "@/lib/store";
 import {
+  Avatar,
+  Button,
+  Chip,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   List,
   ListItem,
   ListItemAvatar,
   ListItemText,
-  Avatar,
-  Typography,
-  Chip,
   Menu,
   MenuItem,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Button,
+  Typography,
 } from "@mui/material";
-import { AppDispatch } from "@/lib/store";
-import { updateStatus } from "@/features/userSlice";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
+import React, { useEffect, useState } from "react";
+import { useDispatch } from "react-redux";
 
 dayjs.extend(relativeTime);
 
 const statusOptions = ["rejected", "confirmed", "pending"];
 
 interface AppointmentListProps {
-  appointments: any[];
+  appointments: any[]; 
 }
 
 const AppointmentList: React.FC<AppointmentListProps> = ({ appointments }) => {
