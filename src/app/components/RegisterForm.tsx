@@ -26,21 +26,17 @@ import {
 } from "@mui/material";
 import axios from "@/lib/axios";
 import { isAxiosError } from "axios";
-import LocationSearch, {
-  SearchResult,
-} from "@/app/components/user/LocationSearch";
+import LocationSearch, { SearchResult } from "@/app/components/user/LocationSearch";
 
 const RegisterForm: React.FC = () => {
   const dispatch = useDispatch();
   const formState = useSelector((state: RootState) => state.form);
   const router = useRouter();
-  const [error, setError] = useState("");
-  const [specialty, setSpecialty] = useState("");
-  const [bio, setBio] = useState("");
-  const [meetingPrice, setMeetingPrice] = useState("");
-  const [selectedLocation, setSelectedLocation] = useState<SearchResult | null>(
-    null
-  );
+  const [error, setError] = useState<string>("");
+  const [specialty, setSpecialty] = useState<string>("");
+  const [bio, setBio] = useState<string>("");
+  const [meetingPrice, setMeetingPrice] = useState<string>("");
+  const [selectedLocation, setSelectedLocation] = useState<SearchResult | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -54,7 +50,7 @@ const RegisterForm: React.FC = () => {
     try {
       const response = await axios.post("/auth/register", {
         FirstName: formState.firstName,
-        LastName: "",
+        LastName: "", // Assuming LastName is not collected in the form
         Username: formState.Username,
         Password: formState.password,
         Email: formState.Username,
@@ -73,9 +69,7 @@ const RegisterForm: React.FC = () => {
       }
     } catch (error) {
       if (isAxiosError(error) && error.response) {
-        setError(
-          error.response.data.message || "An error occurred during registration"
-        );
+        setError(error.response.data.message || "An error occurred during registration");
       } else {
         setError("An unexpected error occurred");
       }
@@ -129,12 +123,7 @@ const RegisterForm: React.FC = () => {
             gap: 3,
           }}
         >
-          <Typography
-            variant="h4"
-            fontWeight="bold"
-            align="center"
-            gutterBottom
-          >
+          <Typography variant="h4" fontWeight="bold" align="center" gutterBottom>
             Register Here
           </Typography>
 
