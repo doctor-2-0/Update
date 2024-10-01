@@ -1,14 +1,14 @@
-import React from 'react';
-import { Typography, Box } from '@mui/material';
-import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
+import { Box, Typography } from "@mui/material";
+import React from "react";
+import { Cell, Pie, PieChart, ResponsiveContainer } from "recharts";
 
 const data = [
-  { name: 'Male', value: 60 },
-  { name: 'Female', value: 35 },
-  { name: 'Other', value: 5 },
+  { name: "Male", value: 60 },
+  { name: "Female", value: 35 },
+  { name: "Other", value: 5 },
 ];
 
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28'];
+const COLORS = ["#0088FE", "#00C49F", "#FFBB28"];
 
 const PatientChart: React.FC = () => {
   return (
@@ -28,14 +28,20 @@ const PatientChart: React.FC = () => {
             dataKey="value"
           >
             {data.map((entry, index) => (
-              <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+              <Cell
+                key={`cell-${index}`}
+                fill={COLORS[index % COLORS.length]}
+              />
             ))}
           </Pie>
         </PieChart>
       </ResponsiveContainer>
-      <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
+      <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
         {data.map((entry, index) => (
-          <Box key={entry.name} sx={{ display: 'flex', alignItems: 'center', mx: 1 }}>
+          <Box
+            key={entry.name}
+            sx={{ display: "flex", alignItems: "center", mx: 1 }}
+          >
             <Box
               sx={{
                 width: 10,

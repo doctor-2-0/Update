@@ -1,26 +1,20 @@
-import React, { useState } from "react";
-import {
-  Drawer,
-  List,
-  ListItemButton,
-  ListItemIcon,
-  ListItemText,
-  Typography,
-  Box,
-  IconButton,
-} from "@mui/material";
-import DashboardIcon from "@mui/icons-material/Dashboard";
-// import PeopleIcon from '@mui/icons-material/People';
-import EventIcon from "@mui/icons-material/Event";
-import PaymentIcon from "@mui/icons-material/Payment";
-import MessageIcon from "@mui/icons-material/Message";
-import SettingsIcon from "@mui/icons-material/Settings";
+"use client";
+
 import ArticleIcon from "@mui/icons-material/Article";
-import PersonIcon from "@mui/icons-material/Person";
 import CloseIcon from "@mui/icons-material/Close";
+import DashboardIcon from "@mui/icons-material/Dashboard";
+import EventIcon from "@mui/icons-material/Event";
 import HomeIcon from "@mui/icons-material/Home";
-import { useRouter } from "next/router";
-import ChatRooms from "./ChatRooms";
+import MessageIcon from "@mui/icons-material/Message";
+import PaymentIcon from "@mui/icons-material/Payment";
+import PersonIcon from "@mui/icons-material/Person";
+import SettingsIcon from "@mui/icons-material/Settings";
+import { Drawer, List, ListItemIcon, ListItemText } from "@mui/material";
+import { useRouter } from "next/navigation";
+import React, { useState } from "react";
+import { Box, IconButton, ListItemButton, Typography } from "@mui/material";
+import Image from "next/image";
+import ChatRooms from "./ChatRooms"; // Ensure this component exists
 
 const drawerWidth = 240;
 
@@ -35,31 +29,42 @@ const Sidebar: React.FC = () => {
 
   const menuItems = [
     {
+      text: "Home",
+      icon: <HomeIcon />,
+      onClick: () => router.push("/app/components/Home"), // Adjusted path
+    },
+    {
       text: "Overview",
       icon: <DashboardIcon />,
-      onClick: () => router.push("/dashboard"),
+      onClick: () => router.push("/app/components/doctorDashboard/Dashboard.tsx"),
     },
     {
       text: "Appointment",
       icon: <EventIcon />,
-      onClick: () => router.push("/appointments"),
+      onClick: () => router.push("/app/components/doctorDashboard/AppointmentList.tsx"),
     },
     {
       text: "My Patients",
       icon: <PersonIcon />,
-      onClick: () => router.push("/patients"),
+      onClick: () =>
+        router.push("/app/components/doctorDashboard/RecentPatients.tsx"),
     },
     {
       text: "Schedule Timings",
       icon: <EventIcon />,
-      onClick: () => router.push("/schedule"),
+      onClick: () =>
+        router.push("/app/components/doctorDashboard/DoctorAvailability.tsx"),
     },
     {
       text: "Payments",
       icon: <PaymentIcon />,
       onClick: () => router.push("/payments"),
     },
-    { text: "Messages", icon: <MessageIcon />, onClick: handleMessagesClick },
+    {
+      text: "Messages",
+      icon: <MessageIcon />,
+      onClick: handleMessagesClick,
+    },
     {
       text: "Blog",
       icon: <ArticleIcon />,
@@ -92,53 +97,22 @@ const Sidebar: React.FC = () => {
         <Box
           sx={{ display: "flex", alignItems: "center", paddingBottom: "20px" }}
         >
-          <img
+          <Image
             src="https://www.clipartmax.com/png/small/54-545682_doctor-logo-doctor-logo-png.png"
-            alt="Doct Logo"
-            style={{ width: "30px", marginRight: "10px" }}
+            alt="Doctor Logo"
+            width={100}
+            height={100}
+            loader={({ src }) => src}
+            unoptimized
           />
-          <Typography variant="h6" sx={{ fontWeight: "bold" }}>
+          <Typography variant="h6" sx={{ fontWeight: "bold", marginLeft: 1 }}>
             Doct.
           </Typography>
         </Box>
 
         {/* Menu Items */}
         <List>
-          {[
-            {
-              text: "Home",
-              icon: <HomeIcon />,
-              onClick: () => router.push("/"),
-            },
-            {
-              text: "Overview",
-              icon: <DashboardIcon />,
-              onClick: () => router.push("/dashboard"),
-            },
-            {
-              text: "Appointment",
-              icon: <EventIcon />,
-              onClick: () => router.push("/appointments"),
-            },
-            { text: "My Patients", icon: <PersonIcon /> },
-            {
-              text: "Schedule Timings",
-              icon: <EventIcon />,
-              onClick: () => router.push("/doctor/availability"),
-            },
-            { text: "Payments", icon: <PaymentIcon /> },
-            {
-              text: "Message",
-              icon: <MessageIcon />,
-              onClick: () => router.push("/chat"),
-            },
-            { text: "Blog", icon: <ArticleIcon /> }, // New Blog item
-            {
-              text: "Settings",
-              icon: <SettingsIcon />,
-              onClick: () => router.push("/settings"),
-            },
-          ].map((item, index) => (
+          {menuItems.map((item) => (
             <ListItemButton
               key={item.text}
               sx={{
@@ -146,12 +120,12 @@ const Sidebar: React.FC = () => {
                 borderRadius: "8px",
                 marginBottom: "10px",
                 "&:hover": {
-                  backgroundColor: "#000", // Black background on hover
-                  color: "#fff", // White text on hover
+                  backgroundColor: "#000",
+                  color: "#fff",
                 },
                 "&.Mui-selected": {
-                  backgroundColor: "#000", // Black background for selected item
-                  color: "#fff", // White text for selected item
+                  backgroundColor: "#000",
+                  color: "#fff",
                 },
               }}
               onClick={item.onClick}
@@ -174,6 +148,7 @@ const Sidebar: React.FC = () => {
             right: 0,
             backgroundColor: "white",
             zIndex: 1200,
+            boxShadow: "0 0 10px rgba(0,0,0,0.5)",
           }}
         >
           <Box
