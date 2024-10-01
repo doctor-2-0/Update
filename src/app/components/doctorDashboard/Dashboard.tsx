@@ -6,6 +6,14 @@ import { AppDispatch, RootState } from "@/lib/store";
 import { Box, Paper, Typography } from "@mui/material";
 import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import React, { useEffect } from "react";
+import { Grid, Typography, Paper, Box } from "@mui/material";
+import { useSelector, useDispatch } from "react-redux";
+import { RootState, AppDispatch } from "@/lib/store";
+import { login } from "@/features/authSlice";
+import { fetchAppointmentsByUserId } from "@/features/appointmentSlice";
+import { useRouter } from "next/navigation"; // Add this import
+import StatCard from "./StatCard";
 import AppointmentList from "./AppointmentList";
 import Sidebar from "./Sidebar";
 import StatCard from "./StatCard";
@@ -13,6 +21,7 @@ import StatCard from "./StatCard";
 import ChatRooms from "./ChatRooms";
 
 const Dashboard: React.FC = () => {
+  const router = useRouter(); // Add this line
   const dispatch = useDispatch<AppDispatch>();
   const { user, loading, isAuthenticated } = useSelector(
     (state: RootState) => state.Auth
@@ -30,17 +39,22 @@ const Dashboard: React.FC = () => {
         .then(() => {
           dispatch(fetchAppointmentsByUserId());
         })
-        .catch(console.error);
+        .catch((error) => {
+          console.error(error);
+          router.push("/login"); // Redirect to login page if authentication fails
+        });
     } else if (isAuthenticated) {
       dispatch(fetchAppointmentsByUserId());
+    } else if (!loading && !isAuthenticated) {
+      router.push("/login"); // Redirect to login page if not authenticated
     }
-  }, [dispatch, isAuthenticated, loading]);
+  }, [dispatch, isAuthenticated, loading, router]);
 
   const getWelcomeMessage = () => {
     if (loading) return "Loading...";
     if (!isAuthenticated || !user) return "Welcome, Doctor";
 
-    const doctorName = user.LastName || "Doctor";
+    const doctorName = user.lastName || "Doctor";
     return `Welcome, Dr. ${doctorName}`;
   };
 

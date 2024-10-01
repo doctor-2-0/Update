@@ -12,6 +12,7 @@ export const fetchUserProfile = createAsyncThunk(
   "userProfile/fetchUserProfile",
   async (_, { rejectWithValue }) => {
     try {
+      console.log("fetchUserProfile called");
       const token = localStorage.getItem("token");
       const response = await axios.get("/users/profile", {
         headers: {

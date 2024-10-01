@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState, AppDispatch } from "@/lib/store";
+import { useAuth } from "@/hooks/useAuth";
 import {
   updateUserProfile,
   fetchUserProfile,
@@ -40,6 +41,7 @@ const ProfileSection = styled(Box)(({ theme }) => ({
 }));
 
 const UserAccountProfile: React.FC = () => {
+  const { auth, handleLogin } = useAuth();
   const dispatch: AppDispatch = useDispatch();
   const { user, loading, error } = useSelector(
     (state: RootState) => state.userProfile
@@ -55,8 +57,15 @@ const UserAccountProfile: React.FC = () => {
   });
 
   useEffect(() => {
-    dispatch(fetchUserProfile());
-  }, [dispatch]);
+    handleLogin({
+      token: localStorage.getItem("token") || "",
+    });
+    console.log("auth.isAuthenticated", auth);
+
+    if (auth.isAuthenticated) {
+      dispatch(fetchUserProfile());
+    }
+  }, [dispatch, auth.isAuthenticated]);
 
   useEffect(() => {
     if (user) {
@@ -88,7 +97,6 @@ const UserAccountProfile: React.FC = () => {
   };
 
   const handleSubmit = async () => {
-    const token = localStorage.getItem("token");
     let photoUrl = user?.photoUrl;
 
     if (file) {
@@ -101,7 +109,7 @@ const UserAccountProfile: React.FC = () => {
             { base64 },
             {
               headers: {
-                Authorization: `Bearer ${token}`,
+                Authorization: `Bearer ${auth.token}`,
               },
             }
           );
@@ -126,7 +134,11 @@ const UserAccountProfile: React.FC = () => {
         <CardContent>
           <ProfileAvatar
             alt={`${profileData.firstName} ${profileData.lastName}`}
-            src={preview || user?.photoUrl || "/path/to/default-avatar.jpg"}
+            src={
+              preview ||
+              user?.photoUrl ||
+              "https://wallpapers.com/images/hd/anonymous-profile-silhouette-b714qekh29tu1anb.jpg"
+            }
           />
           <input
             type="file"

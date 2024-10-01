@@ -2,15 +2,15 @@ import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import axios from "@/lib/axios";
 
 interface User {
-  UserID: string;
-  FirstName: string;
-  LastName: string;
-  Username: string;
-  Email: string;
-  Role: "Admin" | "Doctor" | "Patient";
-  Speciality?: string;
-  Bio?: string;
-  MeetingPrice?: number;
+  id: string;
+  firstName: string;
+  lastName: string;
+  username: string;
+  email: string;
+  role: "Admin" | "Doctor" | "Patient";
+  speciality?: string;
+  bio?: string;
+  meetingPrice?: number;
 }
 
 interface AuthState {
@@ -45,9 +45,9 @@ export const login = createAsyncThunk(
   "auth/login",
   async (
     credentials: {
-      Email?: string;
-      Username?: string;
-      Password?: string;
+      email?: string;
+      username?: string;
+      password?: string;
       token?: string;
     },
     { rejectWithValue }
@@ -55,22 +55,28 @@ export const login = createAsyncThunk(
     try {
       let response;
       if (credentials.token) {
-        // If a token is provided, verify it
         response = await axios.get("auth/session", {
           headers: { Authorization: `Bearer ${credentials.token}` },
         });
       } else {
-        // Otherwise, perform normal login
         response = await axios.post("auth/login", credentials);
-        if (response.data.token && typeof window !== "undefined") {
-          localStorage.setItem("token", response.data.token);
-        }
       }
-      return response.data;
+
+      if (response.data.token && typeof window !== "undefined") {
+        localStorage.setItem("token", response.data.token);
+      }
+      console.log("Login response:", response.data);
+
+      return {
+        user: response.data.user,
+        token: response.data.token,
+      };
     } catch (error: any) {
-      console.log(error);
-      localStorage.removeItem("token"); // Clear invalid token
-      return rejectWithValue(error.response.data.message);
+      console.error("Login error:", error);
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("token");
+      }
+      return rejectWithValue(error.response?.data?.message || "Login failed");
     }
   }
 );
@@ -94,9 +100,11 @@ const authSlice = createSlice({
       })
       .addCase(
         register.fulfilled,
-        (state, action: PayloadAction<{ user: User }>) => {
+        (state, action: PayloadAction<{ user: User; token: string }>) => {
           state.loading = false;
           state.user = action.payload.user;
+          state.token = action.payload.token;
+          state.isAuthenticated = true;
         }
       )
       .addCase(register.rejected, (state, action) => {
@@ -107,13 +115,17 @@ const authSlice = createSlice({
         state.loading = true;
         state.error = null;
       })
-      .addCase(login.fulfilled, (state, action: PayloadAction<User>) => {
-        console.log(action.payload);
-        state.user = action.payload;
-        state.loading = false;
-
-        state.isAuthenticated = true;
-      })
+      .addCase(
+        login.fulfilled,
+        (state, action: PayloadAction<{ user: User; token: string }>) => {
+          console.log("Login fulfilled:", action.payload);
+          state.user = action.payload.user;
+          state.token = action.payload.token;
+          state.loading = false;
+          state.isAuthenticated = true;
+          state.error = null;
+        }
+      )
       .addCase(login.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;

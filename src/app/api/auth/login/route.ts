@@ -4,9 +4,9 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
 export async function POST(request: NextRequest) {
-  const { Email, Username, Password } = await request.json();
+  const { email, username, password } = await request.json();
 
-  if ((!Email && !Username) || !Password) {
+  if ((!email && !username) || !password) {
     return NextResponse.json(
       { message: "Email or Username, and Password are required" },
       { status: 400 }
@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
   try {
     const user = await prisma.user.findFirst({
       where: {
-        OR: [{ email: Email || "" }, { username: Username || "" }],
+        OR: [{ email: email || "" }, { username: username || "" }],
       },
     });
 
@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: "User not found" }, { status: 404 });
     }
 
-    const isMatch = await bcrypt.compare(Password, user.password);
+    const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return NextResponse.json(
         { message: "Incorrect password" },
@@ -38,13 +38,29 @@ export async function POST(request: NextRequest) {
         role: user.role,
         locationLatitude: user.locationLatitude,
         locationLongitude: user.locationLongitude,
+        username: user.username,
+        firstName: user.firstName,
+        lastName: user.lastName,
       },
       process.env.JWT_SECRET as string,
       { expiresIn: "1h" }
     );
 
     return NextResponse.json(
-      { message: "Login successful", token },
+      {
+        message: "Login successful",
+        token,
+        user: {
+          id: user.id,
+          username: user.username,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          email: user.email,
+          role: user.role,
+          locationLatitude: user.locationLatitude,
+          locationLongitude: user.locationLongitude,
+        },
+      },
       { status: 200 }
     );
   } catch (error) {

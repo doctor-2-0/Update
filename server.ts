@@ -15,7 +15,14 @@ app.prepare().then(() => {
     handle(req, res, parsedUrl);
   });
 
-  setupSocketServer(server);
+  const io = setupSocketServer(server);
+
+  // Add CORS configuration
+  io.engine.on("headers", (headers: any, req: any) => {
+    headers["Access-Control-Allow-Origin"] = "*";
+    headers["Access-Control-Allow-Methods"] = "GET,POST";
+    headers["Access-Control-Allow-Headers"] = "Content-Type";
+  });
 
   server.listen(port, () => {
     console.log(`> Ready on http://${hostname}:${port}`);
