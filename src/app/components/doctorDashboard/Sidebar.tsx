@@ -31,7 +31,7 @@ const Sidebar: React.FC = () => {
     {
       text: "Home",
       icon: <HomeIcon />,
-      onClick: () => router.push("/app/components/Home"), // Adjusted path
+      onClick: () => router.push("app/components/Home.tsx"), // Adjusted path
     },
     {
       text: "Overview",
