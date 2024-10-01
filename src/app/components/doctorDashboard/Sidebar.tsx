@@ -1,3 +1,4 @@
+"use client";
 import React, { useState } from "react";
 import {
   Drawer,
@@ -19,7 +20,7 @@ import ArticleIcon from "@mui/icons-material/Article";
 import PersonIcon from "@mui/icons-material/Person";
 import CloseIcon from "@mui/icons-material/Close";
 import HomeIcon from "@mui/icons-material/Home";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import ChatRooms from "./ChatRooms";
 
 const drawerWidth = 240;
