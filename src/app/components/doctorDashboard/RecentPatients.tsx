@@ -1,5 +1,5 @@
-import React, { useEffect } from "react";
-import { useSelector, useDispatch } from "react-redux";
+import React from "react";
+import { useSelector } from "react-redux";
 import {
   CircularProgress,
   Typography,
@@ -12,8 +12,10 @@ import {
   Paper,
   Avatar,
 } from "@mui/material";
-import { RootState, AppDispatch } from "@/lib/store";
+import { RootState } from "@/lib/store";
 import { fetchUsers } from "@/features/userSlice";
+import { GetServerSideProps } from "next";
+import { store } from "@/lib/store";
 
 interface User {
   UserID: number;
@@ -28,16 +30,7 @@ interface User {
   }>;
 }
 
-const RecentPatients: React.FC = () => {
-  const dispatch = useDispatch<AppDispatch>();
-  const { users, loading, error } = useSelector(
-    (state: RootState) => state.users
-  );
-
-  useEffect(() => {
-    dispatch(fetchUsers());
-  }, [dispatch]);
-
+const RecentPatients: React.FC<{ users: User[]; loading: boolean; error: string | null }> = ({ users, loading, error }) => {
   if (loading) {
     return <CircularProgress />;
   }
@@ -64,7 +57,7 @@ const RecentPatients: React.FC = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {(users as User[]).map((user, index) =>
+            {users.map((user, index) =>
               user.PatientAppointments.map((appointment) => (
                 <TableRow key={appointment.AppointmentID}>
                   <TableCell component="th" scope="row">
@@ -91,6 +84,22 @@ const RecentPatients: React.FC = () => {
       </TableContainer>
     </>
   );
+};
+
+export const getServerSideProps: GetServerSideProps = async () => {
+  const dispatch = store.dispatch;
+  await dispatch(fetchUsers());
+
+  const state = store.getState();
+  const { users, loading, error } = state.users;
+
+  return {
+    props: {
+      users,
+      loading,
+      error,
+    },
+  };
 };
 
 export default RecentPatients;

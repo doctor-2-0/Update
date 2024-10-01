@@ -9,7 +9,15 @@ interface StatCardProps {
 
 const StatCard: React.FC<StatCardProps> = ({ title, value, color }) => {
   return (
-    <Paper sx={{ p: 2, backgroundColor: color, color: 'white' }}>
+    <Paper
+      sx={{
+        p: 2,
+        backgroundColor: color,
+        color: 'white',
+        borderRadius: 2,
+        boxShadow: 2,    
+      }}
+    >
       <Typography variant="h6">{title}</Typography>
       <Box sx={{ display: 'flex', alignItems: 'baseline' }}>
         <Typography variant="h4" component="span">
