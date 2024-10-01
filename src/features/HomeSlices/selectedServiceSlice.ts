@@ -8,11 +8,11 @@ export interface Service {
 }
 
 const initialState: Service = {
-    id: '',
-    title: '',
-    description: '',
-    imageUrl: '',
-  };
+  id: '',
+  title: '',
+  description: '',
+  imageUrl: '',
+};
 
 const selectedServiceSlice = createSlice({
   name: 'selectedService',
