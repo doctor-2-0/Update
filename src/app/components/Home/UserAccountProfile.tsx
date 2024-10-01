@@ -51,7 +51,7 @@ const UserAccountProfile: React.FC = () => {
     lastName: "",
     email: "",
     photoUrl: "",
-    password: "",
+    password: "",   
   });
 
   useEffect(() => {

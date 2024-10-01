@@ -49,7 +49,7 @@ const AllDoctors: React.FC = () => {
     return <CircularProgress />;
   }
 
-  if (status === "failed") {
+  if (status === "failed"){
     return <Typography color="error">{error}</Typography>;
   }
 

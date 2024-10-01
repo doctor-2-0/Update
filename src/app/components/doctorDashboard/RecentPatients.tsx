@@ -94,3 +94,5 @@ const RecentPatients: React.FC = () => {
 };
 
 export default RecentPatients;
+
+

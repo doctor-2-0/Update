@@ -28,7 +28,7 @@ interface DoctorProps {
   LocationLatitude: number;
   LocationLongitude: number;
   Email: any;
-}
+};
 
 const StyledCard = styled(Card)(({ theme }) => ({
   width: "100%",
@@ -135,7 +135,7 @@ const DoctorCard: React.FC<DoctorProps> = ({
         >
           Book Appointment
         </Button>
-        <Button
+        <Button 
           size="small"
           color="secondary"
           variant="contained"
