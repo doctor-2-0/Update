@@ -5,7 +5,6 @@ export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
-  const { searchParams } = new URL(request.url);
   const doctorId = params.id;
   console.log("doctorId", doctorId);
 

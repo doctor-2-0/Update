@@ -16,6 +16,7 @@ import {
   DialogActions,
   Button,
   IconButton,
+  Box,
 } from "@mui/material";
 import { AppDispatch } from "@/lib/store";
 import { updateStatus } from "@/features/userSlice";
@@ -23,7 +24,9 @@ import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import MessageIcon from "@mui/icons-material/Message";
 import { useRouter } from "next/navigation";
-
+import axios from "@/lib/axios";
+import ChatRooms from "./ChatRooms";
+import { isAxiosError } from "axios";
 dayjs.extend(relativeTime);
 
 const statusOptions = ["rejected", "confirmed", "pending"];
@@ -56,6 +59,10 @@ const AppointmentList: React.FC<AppointmentListProps> = ({ appointments }) => {
   const [selectedStatus, setSelectedStatus] = useState<string>("");
   const [selectedAppointment, setSelectedAppointment] = useState<any>(null);
   const [openDialog, setOpenDialog] = useState(false);
+  const [openChatDialog, setOpenChatDialog] = useState(false);
+  const [selectedChatRoomId, setSelectedChatRoomId] = useState<number | null>(
+    null
+  );
 
   useEffect(() => {
     setLocalAppointments(appointments);
@@ -116,14 +123,31 @@ const AppointmentList: React.FC<AppointmentListProps> = ({ appointments }) => {
     );
   };
 
-  const handleMessageClick = (appointment: any) => {
-    // Here you can implement the logic to open a chat or messaging interface
-    console.log(
-      `Opening chat with patient: ${appointment.patient.firstName} ${appointment.patient.lastName}`
-    );
-    // You might want to navigate to a chat page or open a chat modal
-    // For example:
-    // router.push(`/chat/${appointment.id}`);
+  const handleMessageClick = async (appointment: any) => {
+    try {
+      const response = await axios.post(
+        `/chatroom/${appointment.patient.firstName}`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+      const chatroomId = response.data.chatRoom.id;
+      setSelectedChatRoomId(chatroomId);
+      setOpenChatDialog(true);
+    } catch (error) {
+      console.error("Error creating chatroom:", error);
+      if (isAxiosError(error)) {
+        console.error("Error details:", error.response?.data);
+      }
+    }
+  };
+
+  const handleCloseChatDialog = () => {
+    setOpenChatDialog(false);
+    setSelectedChatRoomId(null);
   };
 
   return (
@@ -188,6 +212,19 @@ const AppointmentList: React.FC<AppointmentListProps> = ({ appointments }) => {
           <Button onClick={handleConfirmAppointment} color="primary">
             Confirm
           </Button>
+        </DialogActions>
+      </Dialog>
+      <Dialog open={openChatDialog} onClose={handleCloseChatDialog}>
+        <DialogTitle>Chat</DialogTitle>
+        <DialogContent>
+          <Box sx={{ height: "60vh" }}>
+            {selectedChatRoomId && (
+              <ChatRooms onClose={handleCloseChatDialog} />
+            )}
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseChatDialog}>Close</Button>
         </DialogActions>
       </Dialog>
     </>
