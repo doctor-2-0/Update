@@ -1,8 +1,19 @@
 import React, { useState, useEffect } from "react";
-import { TextField, Button, Typography, Grid, MenuItem } from "@mui/material";
+import {
+  Box,
+  Button,
+  TextField,
+  Typography,
+  Grid,
+  MenuItem,
+  Snackbar,
+  Alert,
+} from "@mui/material";
 import axios from "@/lib/axios";
 import { SelectedDoctor } from "@/features/HomeSlices/selectedDoctorSlice";
 import { isAxiosError } from "axios";
+
+// Add these state variables
 
 interface AvailableSlot {
   date: string;
@@ -11,15 +22,26 @@ interface AvailableSlot {
 }
 
 interface AppointmentBookingProps {
-  doctor: SelectedDoctor;
+  doctor: {
+    UserID: number;
+    FirstName: string;
+    LastName: string;
+  };
 }
 
 const AppointmentBooking: React.FC<AppointmentBookingProps> = ({ doctor }) => {
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalContent, setModalContent] = useState({
+    title: "",
+    message: "",
+    isSuccess: true,
+  });
   const [availableSlots, setAvailableSlots] = useState<AvailableSlot[]>([]);
   const [selectedYear, setSelectedYear] = useState<string>("");
   const [selectedMonth, setSelectedMonth] = useState<string>("");
   const [selectedDay, setSelectedDay] = useState<string>("");
   const [selectedTime, setSelectedTime] = useState<string>("");
+
   useEffect(() => {
     const fetchAvailableSlots = async () => {
       if (doctor.UserID) {
@@ -72,45 +94,50 @@ const AppointmentBooking: React.FC<AppointmentBookingProps> = ({ doctor }) => {
         `${selectedYear}-${selectedMonth}-${selectedDay}T${selectedTime}`
       );
       const appointmentData = {
-        DoctorID: doctor.UserID,
-        AppointmentDate: appointmentDate.toISOString(),
-        DurationMinutes: 60, // Set duration to 1 hour
+        doctorId: doctor.UserID,
+        appointmentDate: appointmentDate.toISOString(),
+        durationMinutes: 60, // Set duration to 1 hour
       };
 
       try {
         const token = localStorage.getItem("token");
-        const response = await axios.post(
-          "http://localhost:5000/api/appointments",
-          appointmentData,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
+        const response = await axios.post("/appointments", appointmentData, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
         console.log("Appointment created successfully", response.data);
-        // Add success handling here (e.g., show a success message, clear form, etc.)
+        setModalContent({
+          title: "Appointment Booked",
+          message: "Your appointment has been successfully booked.",
+          isSuccess: true,
+        });
+        setModalOpen(true);
+        // Reset form
+        setSelectedYear("");
+        setSelectedMonth("");
+        setSelectedDay("");
+        setSelectedTime("");
       } catch (error) {
-        if (isAxiosError(error)) {
-          console.error(
-            "Failed to create appointment",
-            error.response?.data || error.message
-          );
-          alert(
-            `Failed to create appointment: ${
-              error.response?.data?.message || error.message
-            }`
-          );
-        } else {
-          console.error("Failed to create appointment", error);
-          alert("Failed to create appointment: An unexpected error occurred");
-        }
+        console.error("Failed to create appointment", error);
+        setModalContent({
+          title: "Booking Failed",
+          message: "Failed to book the appointment. Please try again.",
+          isSuccess: false,
+        });
+        setModalOpen(true);
       }
     } else {
-      alert("Please select all required fields");
+      setModalContent({
+        title: "Incomplete Information",
+        message: "Please select all required fields",
+        isSuccess: false,
+      });
+      setModalOpen(true);
     }
   };
 
+  // Keep the existing helper functions
   const getUniqueValues = (key: "year" | "month" | "day") => {
     return Array.from(
       new Set(
@@ -180,95 +207,113 @@ const AppointmentBooking: React.FC<AppointmentBookingProps> = ({ doctor }) => {
   };
 
   return (
-    <>
-      <Typography variant="h5" gutterBottom>
-        Book Appointment
+    <Box>
+      <Typography variant="h6" gutterBottom>
+        Book an Appointment with Dr. {doctor.FirstName} {doctor.LastName}
       </Typography>
       {availableSlots.length === 0 ? (
         <Typography variant="body1">
           No available slots for this doctor.
         </Typography>
       ) : (
-        <>
-          <TextField
-            select
-            fullWidth
-            label="Year"
-            value={selectedYear}
-            onChange={handleYearChange}
-            margin="normal"
-            variant="outlined"
-          >
-            {getUniqueValues("year").map((year) => (
-              <MenuItem key={year} value={year}>
-                {year}
-              </MenuItem>
-            ))}
-          </TextField>
-          <TextField
-            select
-            fullWidth
-            label="Month"
-            value={selectedMonth}
-            onChange={handleMonthChange}
-            margin="normal"
-            variant="outlined"
-            disabled={!selectedYear}
-          >
-            {getFilteredValues("month", "year", selectedYear).map((month) => (
-              <MenuItem key={month} value={month}>
-                {month}
-              </MenuItem>
-            ))}
-          </TextField>
-          <TextField
-            select
-            fullWidth
-            label="Day"
-            value={selectedDay}
-            onChange={handleDayChange}
-            margin="normal"
-            variant="outlined"
-            disabled={!selectedMonth}
-          >
-            {getFilteredValues("day", "month", selectedMonth).map((day) => (
-              <MenuItem key={day} value={day}>
-                {day}
-              </MenuItem>
-            ))}
-          </TextField>
-          <TextField
-            select
-            fullWidth
-            label="Time"
-            value={selectedTime}
-            onChange={handleTimeChange}
-            margin="normal"
-            variant="outlined"
-            disabled={!selectedDay}
-          >
-            {getAvailableTimesForDate(
-              selectedYear,
-              selectedMonth,
-              selectedDay
-            ).map((time) => (
-              <MenuItem key={time} value={time}>
-                {time}
-              </MenuItem>
-            ))}
-          </TextField>
-          <Button
-            variant="contained"
-            color="primary"
-            fullWidth
-            onClick={handleSubmit}
-            sx={{ mt: 2, py: 1.5, fontSize: "1.1rem", fontWeight: "bold" }}
-          >
-            BOOK APPOINTMENT
-          </Button>
-        </>
+        <Grid container spacing={2}>
+          <Grid item xs={12} sm={6}>
+            <TextField
+              select
+              fullWidth
+              label="Year"
+              value={selectedYear}
+              onChange={handleYearChange}
+              variant="outlined"
+            >
+              {getUniqueValues("year").map((year) => (
+                <MenuItem key={year} value={year}>
+                  {year}
+                </MenuItem>
+              ))}
+            </TextField>
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <TextField
+              select
+              fullWidth
+              label="Month"
+              value={selectedMonth}
+              onChange={handleMonthChange}
+              variant="outlined"
+              disabled={!selectedYear}
+            >
+              {getFilteredValues("month", "year", selectedYear).map((month) => (
+                <MenuItem key={month} value={month}>
+                  {month}
+                </MenuItem>
+              ))}
+            </TextField>
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <TextField
+              select
+              fullWidth
+              label="Day"
+              value={selectedDay}
+              onChange={handleDayChange}
+              variant="outlined"
+              disabled={!selectedMonth}
+            >
+              {getFilteredValues("day", "month", selectedMonth).map((day) => (
+                <MenuItem key={day} value={day}>
+                  {day}
+                </MenuItem>
+              ))}
+            </TextField>
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <TextField
+              select
+              fullWidth
+              label="Time"
+              value={selectedTime}
+              onChange={handleTimeChange}
+              variant="outlined"
+              disabled={!selectedDay}
+            >
+              {getAvailableTimesForDate(
+                selectedYear,
+                selectedMonth,
+                selectedDay
+              ).map((time) => (
+                <MenuItem key={time} value={time}>
+                  {time}
+                </MenuItem>
+              ))}
+            </TextField>
+          </Grid>
+          <Grid item xs={12}>
+            <Button
+              variant="contained"
+              color="primary"
+              fullWidth
+              onClick={handleSubmit}
+              sx={{ mt: 2, py: 1.5, fontSize: "1.1rem", fontWeight: "bold" }}
+            >
+              BOOK APPOINTMENT
+            </Button>
+          </Grid>
+        </Grid>
       )}
-    </>
+      <Snackbar
+        open={modalOpen}
+        autoHideDuration={6000}
+        onClose={() => setModalOpen(false)}
+      >
+        <Alert
+          onClose={() => setModalOpen(false)}
+          severity={modalContent.isSuccess ? "success" : "error"}
+        >
+          {modalContent.message}
+        </Alert>
+      </Snackbar>
+    </Box>
   );
 };
 

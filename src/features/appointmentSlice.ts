@@ -19,14 +19,13 @@ export const fetchAppointmentsByUserId = createAsyncThunk(
     try {
       const token =
         typeof window !== "undefined" ? localStorage.getItem("token") : null;
-      const response = await axios.get(
-        `http://localhost:5000/api/appointments/doctor`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const response = await axios.get(`appointments/doctor`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      console.log("response.data for appointments", response.data);
+
       return response.data;
     } catch (error: any) {
       return rejectWithValue(

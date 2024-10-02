@@ -18,7 +18,7 @@ import { RootState, AppDispatch } from "@/lib/store";
 import { fetchSession } from "@/features/sessionSlice";
 import { useSelector, useDispatch } from "react-redux";
 import dayjs, { Dayjs } from "dayjs";
-import axios from "axios";
+import axios from "@/lib/axios";
 
 interface Availability {
   AvailabilityID: number;

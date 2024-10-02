@@ -49,10 +49,21 @@ export async function PUT(request: NextRequest) {
     }
 
     if (photoUrl) {
-      const media = await prisma.media.create({
-        data: { url: photoUrl, userId: user.userId },
+      const existingMedia = await prisma.media.findUnique({
+        where: { userId: user.userId },
       });
-      updateData.profilePictureId = media.id;
+
+      if (existingMedia) {
+        await prisma.media.update({
+          where: { id: existingMedia.id },
+          data: { url: photoUrl },
+        });
+      } else {
+        const newMedia = await prisma.media.create({
+          data: { url: photoUrl, userId: user.userId },
+        });
+        updateData.profilePictureId = newMedia.id;
+      }
     }
 
     const updatedUser = await prisma.user.update({
@@ -62,6 +73,7 @@ export async function PUT(request: NextRequest) {
 
     return NextResponse.json({ message: "User profile updated successfully" });
   } catch (error) {
+    console.log("Error updating user profile", error);
     return NextResponse.json(
       {
         message: "Error updating user profile",

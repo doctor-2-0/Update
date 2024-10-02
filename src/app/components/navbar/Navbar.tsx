@@ -14,8 +14,12 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import MenuIcon from "@mui/icons-material/Menu";
 import { styled } from "@mui/system";
-
+import { RootState } from "@/lib/store";
+import { useSelector } from "react-redux";
 const Navbar: React.FC = () => {
+  const { user, isAuthenticated } = useSelector(
+    (state: RootState) => state.Auth
+  );
   const router = useRouter();
   const [showChatRooms, setShowChatRooms] = useState(false);
   const [token, setToken] = useState<string | null>(null);
@@ -77,18 +81,6 @@ const Navbar: React.FC = () => {
           </Link>
         </Box>
         <Box sx={{ display: { xs: "none", md: "flex" } }}>
-          <Link href="/services" passHref>
-            <Button
-              sx={{
-                color: "#fff",
-                "&:hover": {
-                  backgroundColor: "rgba(255, 255, 255, 0.1)",
-                },
-              }}
-            >
-              Services
-            </Button>
-          </Link>
           <Link href="/contact" passHref>
             <Button
               sx={{
@@ -101,7 +93,7 @@ const Navbar: React.FC = () => {
               Contact Us
             </Button>
           </Link>
-          {!token && (
+          {!isAuthenticated && (
             <>
               <Link href="/register" passHref>
                 <Button
@@ -129,7 +121,7 @@ const Navbar: React.FC = () => {
               </Link>
             </>
           )}
-          {token && (
+          {isAuthenticated && (
             <>
               <Button
                 onClick={handleLogout}
@@ -165,6 +157,20 @@ const Navbar: React.FC = () => {
                   Profile
                 </Button>
               </Link>
+              {isAuthenticated && user?.role === "Doctor" && (
+                <Link href="/dashboard" passHref>
+                  <Button
+                    sx={{
+                      color: "#fff",
+                      "&:hover": {
+                        backgroundColor: "rgba(255, 255, 255, 0.1)",
+                      },
+                    }}
+                  >
+                    Dashboard
+                  </Button>
+                </Link>
+              )}
             </>
           )}
         </Box>

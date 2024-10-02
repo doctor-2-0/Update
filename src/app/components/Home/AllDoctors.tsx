@@ -36,6 +36,7 @@ const AllDoctors: React.FC = () => {
   const { allDoctors, status, error } = useSelector(
     (state: RootState) => state.doctors
   );
+  console.log("allDoctors", allDoctors);
   const [page, setPage] = useState(1);
   const doctorsPerPage = 4;
 
@@ -86,7 +87,8 @@ const AllDoctors: React.FC = () => {
                   LastName={doctor.lastName}
                   Speciality={doctor.speciality}
                   imageUrl={
-                    doctor.imageUrl || "https://via.placeholder.com/150"
+                    (doctor as any).profilePicture?.url ||
+                    "https://via.placeholder.com/150"
                   }
                   Bio={doctor.bio}
                   LocationLatitude={doctor.locationLatitude || 0}

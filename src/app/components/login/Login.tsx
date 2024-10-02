@@ -157,7 +157,7 @@ const LoginForm: React.FC = () => {
           )}
           <Typography align="center" sx={{ mt: 2 }}>
             Don't have an account?{" "}
-            <Link href="/signup">
+            <Link href="/register">
               <Typography component="span" color="primary">
                 Sign up
               </Typography>

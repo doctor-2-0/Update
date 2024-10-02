@@ -1,5 +1,4 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 export interface SelectedDoctor {
   UserID: number;
@@ -13,22 +12,20 @@ export interface SelectedDoctor {
   Email: any;
 }
 
-
-
 const initialState: SelectedDoctor = {
   UserID: 0,
-  FirstName: '',
-  LastName: '',
-  Speciality: '',
-  Bio: '',
-  imageUrl: '',
+  FirstName: "",
+  LastName: "",
+  Speciality: "",
+  Bio: "",
+  imageUrl: "",
   LocationLatitude: 0,
   LocationLongitude: 0,
-  Email: '',
+  Email: "",
 };
 
 const selectedDoctorSlice = createSlice({
-  name: 'selectedDoctor',
+  name: "selectedDoctor",
   initialState,
   reducers: {
     setSelectedDoctor: (state, action: PayloadAction<SelectedDoctor>) => {
@@ -38,5 +35,6 @@ const selectedDoctorSlice = createSlice({
   },
 });
 
-export const { setSelectedDoctor, clearSelectedDoctor } = selectedDoctorSlice.actions;
+export const { setSelectedDoctor, clearSelectedDoctor } =
+  selectedDoctorSlice.actions;
 export default selectedDoctorSlice.reducer;

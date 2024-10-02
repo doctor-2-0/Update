@@ -64,24 +64,24 @@ const RecentPatients: React.FC = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {(users as User[]).map((user, index) =>
-              user.PatientAppointments.map((appointment) => (
-                <TableRow key={appointment.AppointmentID}>
+            {users.map((user, index) =>
+              user.patientAppointments.map((appointment) => (
+                <TableRow key={appointment.id}>
                   <TableCell component="th" scope="row">
                     <div style={{ display: "flex", alignItems: "center" }}>
                       <Avatar
                         src={`https://i.pravatar.cc/150?img=${index + 20}`}
                         sx={{ marginRight: 2 }}
                       />
-                      {`${user.FirstName} ${user.LastName}`}
+                      {`${user.firstName} ${user.lastName}`}
                     </div>
                   </TableCell>
-                  <TableCell>{appointment.AppointmentID}</TableCell>
+                  <TableCell>{appointment.id}</TableCell>
                   <TableCell>
-                    {new Date(appointment.AppointmentDate).toLocaleDateString()}
+                    {new Date(appointment.appointmentDate).toLocaleDateString()}
                   </TableCell>
-                  <TableCell>{user.Gender}</TableCell>
-                  <TableCell>{user.Disease}</TableCell>
+                  <TableCell>{user.gender}</TableCell>
+                  <TableCell>{user.disease}</TableCell>
                   <TableCell>{appointment.Status}</TableCell>
                 </TableRow>
               ))

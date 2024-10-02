@@ -24,17 +24,17 @@ const SearchResults: React.FC = () => {
   return (
     <Grid container spacing={4}>
       {searchedDoctors.map((doctor) => (
-        <Grid item key={doctor.UserID} xs={12} sm={6} md={3}>
+        <Grid item key={doctor.id} xs={12} sm={6} md={3}>
           <DoctorCard
-            UserID={doctor.UserID}
-            FirstName={doctor.FirstName}
-            LastName={doctor.LastName}
-            Speciality={doctor.Speciality}
+            UserID={doctor.id}
+            FirstName={doctor.firstName}
+            LastName={doctor.lastName}
+            Speciality={doctor.speciality}
             imageUrl={doctor.imageUrl || "https://via.placeholder.com/150"}
-            Bio={doctor.Bio}
-            LocationLatitude={doctor.LocationLatitude || 0}
-            LocationLongitude={doctor.LocationLongitude || 0}
-            Email={doctor.Email}
+            Bio={doctor.bio}
+            LocationLatitude={doctor.locationLatitude || 0}
+            LocationLongitude={doctor.locationLongitude || 0}
+            Email={doctor.email}
           />
         </Grid>
       ))}

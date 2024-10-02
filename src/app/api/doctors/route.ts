@@ -14,6 +14,7 @@ export async function GET(request: NextRequest) {
         locationLatitude: true,
         locationLongitude: true,
         email: true,
+        profilePicture: true,
       },
     });
 

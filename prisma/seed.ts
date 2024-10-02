@@ -1,10 +1,16 @@
 // prisma/seed.ts
 const { PrismaClient, Role, AppointmentStatus } = require("@prisma/client");
 const { faker } = require("@faker-js/faker");
+const bcrypt = require("bcrypt");
 
 const prisma = new PrismaClient();
 
+const TODAY = new Date(2024, 9, 2); // October 2, 2024
+
 async function main() {
+  const PASSWORD = "password123";
+  const hashedPassword = await bcrypt.hash(PASSWORD, 10);
+
   // Create users (doctors and patients)
   const users = await Promise.all(
     Array.from({ length: 50 }).map(async (_, index) => {
@@ -14,10 +20,24 @@ async function main() {
           firstName: faker.person.firstName(),
           lastName: faker.person.lastName(),
           username: faker.internet.userName(),
-          password: faker.internet.password(),
+          password: hashedPassword,
           email: faker.internet.email(),
           role,
-          speciality: role === Role.Doctor ? faker.person.jobArea() : null,
+          speciality:
+            role === Role.Doctor
+              ? faker.helpers.arrayElement([
+                  "Cardiology",
+                  "Dermatology",
+                  "Neurology",
+                  "Pediatrics",
+                  "Oncology",
+                  "Orthopedics",
+                  "Psychiatry",
+                  "Gynecology",
+                  "Urology",
+                  "Endocrinology",
+                ])
+              : null,
           locationLatitude: faker.location.latitude(),
           locationLongitude: faker.location.longitude(),
           bio: faker.lorem.paragraph(),
@@ -36,12 +56,15 @@ async function main() {
   // Create appointments
   await Promise.all(
     doctors.flatMap((doctor) =>
-      Array.from({ length: faker.number.int({ min: 1, max: 5 }) }).map(() =>
+      Array.from({ length: faker.number.int({ min: 3, max: 10 }) }).map(() =>
         prisma.appointment.create({
           data: {
             patientId: faker.helpers.arrayElement(patients).id,
             doctorId: doctor.id,
-            appointmentDate: faker.date.future(),
+            appointmentDate: faker.date.between({
+              from: TODAY,
+              to: new Date(TODAY.getTime() + 30 * 24 * 60 * 60 * 1000), // 30 days from today
+            }),
             durationMinutes: faker.helpers.arrayElement([30, 45, 60]),
             status: faker.helpers.arrayElement(
               Object.values(AppointmentStatus)
@@ -59,11 +82,12 @@ async function main() {
         data: {
           patientId: faker.helpers.arrayElement(patients).id,
           doctorId: faker.helpers.arrayElement(doctors).id,
+          startTime: faker.date.past({ refDate: TODAY }),
         },
       });
 
       await Promise.all(
-        Array.from({ length: faker.number.int({ min: 1, max: 10 }) }).map(() =>
+        Array.from({ length: faker.number.int({ min: 5, max: 20 }) }).map(() =>
           prisma.chatroomMessage.create({
             data: {
               chatroomId: chatroom.id,
@@ -72,6 +96,10 @@ async function main() {
                 chatroom.doctorId,
               ]),
               messageText: faker.lorem.sentence(),
+              sentAt: faker.date.between({
+                from: chatroom.startTime,
+                to: TODAY,
+              }),
             },
           })
         )
@@ -85,7 +113,10 @@ async function main() {
       prisma.media.create({
         data: {
           userId: user.id,
-          url: faker.image.avatar(),
+          url:
+            user.role === Role.Doctor
+              ? faker.image.urlLoremFlickr({ category: "people" })
+              : faker.image.avatar(),
         },
       })
     )
@@ -94,17 +125,26 @@ async function main() {
   // Create availability for doctors
   await Promise.all(
     doctors.flatMap((doctor) =>
-      Array.from({ length: 7 }).map((_, index) =>
-        prisma.availability.create({
+      Array.from({ length: 14 }).map((_, index) => {
+        const availableDate = new Date(
+          TODAY.getTime() + index * 24 * 60 * 60 * 1000
+        );
+        return prisma.availability.create({
           data: {
             doctorId: doctor.id,
-            availableDate: faker.date.soon({ days: index + 1 }),
-            startTime: faker.date.future().toTimeString().slice(0, 5),
-            endTime: faker.date.future().toTimeString().slice(0, 5),
+            availableDate,
+            startTime: faker.date
+              .future({ refDate: availableDate })
+              .toTimeString()
+              .slice(0, 5),
+            endTime: faker.date
+              .future({ refDate: availableDate })
+              .toTimeString()
+              .slice(0, 5),
             isAvailable: faker.datatype.boolean(),
           },
-        })
-      )
+        });
+      })
     )
   );
 
@@ -117,7 +157,7 @@ async function main() {
           doctorId: faker.helpers.arrayElement(doctors).id,
           rating: faker.number.int({ min: 1, max: 5 }),
           reviewText: faker.lorem.paragraph(),
-          reviewDate: faker.date.past(),
+          reviewDate: faker.date.past({ refDate: TODAY }),
         },
       })
     )

@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "NODE_ENV=production ts-node --project tsconfig.server.json server.ts",
     "lint": "next lint",
-    "seed": "npx ts-node prisma/seed.ts"
+    "seed": "npx ts-node prisma/seed.ts",
+    "migrate": "npx prisma migrate dev --name dev"
   },
   "dependencies": {
     "@emotion/react": "^11.13.3",

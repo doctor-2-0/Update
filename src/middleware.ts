@@ -50,5 +50,6 @@ export const config = {
     "/api/auth/check-patient/:path*",
     "/api/users/:path*",
     "/api/chatroom/:path*",
+    "/api/doctorReview/:path*",
   ],
 };

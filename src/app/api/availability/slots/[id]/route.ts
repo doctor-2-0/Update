@@ -17,6 +17,8 @@ export async function GET(
   }
 
   try {
+    console.log("doctorIddddddddddddddddddddddd----------------", doctorId);
+
     // Fetch doctor's availability
     const availabilities = await prisma.availability.findMany({
       where: {

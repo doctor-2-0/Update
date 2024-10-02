@@ -2,10 +2,36 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 
 export async function POST(request: NextRequest) {
-  const { patientId, doctorId, appointmentDate, durationMinutes } =
-    await request.json();
   try {
-    const appointment = await prisma.appointment.create({
+    const { doctorId, appointmentDate, durationMinutes } = await request.json();
+    console.log("doctorId", doctorId);
+    console.log("appointmentDate", appointmentDate);
+    console.log("durationMinutes", durationMinutes);
+    const user = JSON.parse(request.headers.get("user") || "{}");
+    const patientId = user.userId;
+
+    // Validate input
+    if (!doctorId || !appointmentDate || !durationMinutes) {
+      return NextResponse.json(
+        { message: "Missing required fields" },
+        { status: 400 }
+      );
+    }
+
+    // Ensure the doctorId is valid and corresponds to a user with the role "Doctor"
+    const doctor = await prisma.user.findFirst({
+      where: { id: doctorId, role: "Doctor" },
+    });
+    if (!doctor) {
+      console.log("Doctor not found:", doctorId);
+      return NextResponse.json(
+        { message: "Doctor not found" },
+        { status: 404 }
+      );
+    }
+
+    // Create the appointment
+    const newAppointment = await prisma.appointment.create({
       data: {
         patientId,
         doctorId,
@@ -14,10 +40,22 @@ export async function POST(request: NextRequest) {
         status: "PENDING",
       },
     });
-    return NextResponse.json(appointment, { status: 201 });
-  } catch (error) {
+
+    console.log("Appointment created successfully:", newAppointment);
     return NextResponse.json(
-      { message: "Error creating appointment", error },
+      {
+        appointment: newAppointment,
+        message: "Appointment created successfully",
+      },
+      { status: 201 }
+    );
+  } catch (error) {
+    console.error("Error creating appointment:", error);
+    return NextResponse.json(
+      {
+        message: "Error creating appointment",
+        error: (error as Error).message,
+      },
       { status: 500 }
     );
   }

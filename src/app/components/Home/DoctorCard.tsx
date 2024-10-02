@@ -32,7 +32,7 @@ interface DoctorProps {
 
 const StyledCard = styled(Card)(({ theme }) => ({
   width: "100%",
-  height: 400,
+  height: "100%",
   display: "flex",
   flexDirection: "column",
   transition: "transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out",

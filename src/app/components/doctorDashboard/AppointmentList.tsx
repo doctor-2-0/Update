@@ -29,6 +29,21 @@ interface AppointmentListProps {
   appointments: any[];
 }
 
+const getStatusColor = (status: string) => {
+  switch (status.toUpperCase()) {
+    case "CONFIRMED":
+      return "success";
+    case "PENDING":
+      return "warning";
+    case "REJECTED":
+      return "error";
+    case "COMPLETED":
+      return "info";
+    default:
+      return "default";
+  }
+};
+
 const AppointmentList: React.FC<AppointmentListProps> = ({ appointments }) => {
   const dispatch = useDispatch<AppDispatch>();
   const now = dayjs();
@@ -60,10 +75,10 @@ const AppointmentList: React.FC<AppointmentListProps> = ({ appointments }) => {
         setOpenDialog(true);
       } else {
         const result = await dispatch(
-          updateStatus({ id: selectedAppointment.AppointmentID, status })
+          updateStatus({ id: selectedAppointment.id, status })
         );
         if (result.meta.requestStatus === "fulfilled") {
-          updateLocalAppointment(selectedAppointment.AppointmentID, status);
+          updateLocalAppointment(selectedAppointment.id, status);
           setSelectedStatus(status);
           handleClose();
         }
@@ -75,12 +90,12 @@ const AppointmentList: React.FC<AppointmentListProps> = ({ appointments }) => {
     if (selectedAppointment) {
       const result = await dispatch(
         updateStatus({
-          id: selectedAppointment.AppointmentID,
+          id: selectedAppointment.id,
           status: "confirmed",
         })
       );
       if (result.meta.requestStatus === "fulfilled") {
-        updateLocalAppointment(selectedAppointment.AppointmentID, "confirmed");
+        updateLocalAppointment(selectedAppointment.id, "confirmed");
         setSelectedStatus("confirmed");
         setOpenDialog(false);
         handleClose();
@@ -106,25 +121,19 @@ const AppointmentList: React.FC<AppointmentListProps> = ({ appointments }) => {
       <List>
         {localAppointments.length ? (
           localAppointments.map((appointment: any, index: number) => {
-            const { Status = "", createdAt, Patient } = appointment;
+            const { status = "", createdAt, patient } = appointment;
             return (
-              <ListItem key={appointment.AppointmentID} divider>
+              <ListItem key={appointment.id} divider>
                 <ListItemAvatar>
                   <Avatar src={`https://i.pravatar.cc/150?img=${index + 1}`} />
                 </ListItemAvatar>
                 <ListItemText
-                  primary={`${Patient.FirstName} ${Patient.LastName}`}
+                  primary={`${patient.firstName} ${patient.lastName}`}
                   secondary={createdAt ? now.from(createdAt) : null}
                 />
                 <Chip
-                  label={Status}
-                  color={
-                    Status === "pending"
-                      ? "warning"
-                      : Status === "rejected"
-                      ? "error"
-                      : "success"
-                  }
+                  label={status}
+                  color={getStatusColor(status)}
                   size="small"
                   onClick={(event) => handleClick(event, appointment)}
                 />
@@ -152,8 +161,8 @@ const AppointmentList: React.FC<AppointmentListProps> = ({ appointments }) => {
           {selectedAppointment && (
             <Typography>
               Are you sure you want to confirm the appointment for{" "}
-              {selectedAppointment.Patient.FirstName}{" "}
-              {selectedAppointment.Patient.LastName}?
+              {selectedAppointment.patient.firstName}{" "}
+              {selectedAppointment.patient.lastName}?
             </Typography>
           )}
         </DialogContent>

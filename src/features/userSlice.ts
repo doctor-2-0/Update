@@ -8,14 +8,14 @@ interface UpdateStatusPayload {
 }
 
 interface User {
-  UserID: number;
-  FirstName: string;
-  LastName: string;
-  Gender: string;
-  Disease: string;
-  PatientAppointments: Array<{
-    AppointmentID: number;
-    AppointmentDate: string;
+  id: number;
+  firstName: string;
+  lastName: string;
+  gender: string;
+  disease: string;
+  patientAppointments: Array<{
+    id: number;
+    appointmentDate: string;
     Status: string;
   }>;
 }
@@ -36,9 +36,8 @@ export const fetchUsers = createAsyncThunk(
   "users/fetchUsers",
   async (_, { rejectWithValue }) => {
     try {
-      const response = await axios.get<User[]>(
-        "http://localhost:5000/api/patient/getUsers"
-      );
+      const response = await axios.get<User[]>("/patient/getUsers");
+      console.log("response.data /patient/getUsers ", response.data);
       return response.data;
     } catch (err) {
       const error = err as AxiosError;
@@ -55,10 +54,7 @@ export const updateStatus = createAsyncThunk(
   "appointments/updateStatus",
   async (payload: UpdateStatusPayload, { rejectWithValue }) => {
     try {
-      const response = await axios.post(
-        "http://localhost:5000/api/patient/updateStatus",
-        payload
-      );
+      const response = await axios.put("/patient/updateStatus", payload);
       return response.data.appointment;
     } catch (err) {
       const error = err as AxiosError;
@@ -82,6 +78,7 @@ const userSlice = createSlice({
         state.error = null;
       })
       .addCase(fetchUsers.fulfilled, (state, action) => {
+        console.log("action.payload", action.payload);
         state.loading = false;
         state.users = action.payload;
       })
@@ -92,18 +89,18 @@ const userSlice = createSlice({
       .addCase(updateStatus.fulfilled, (state, action) => {
         const updatedAppointment = action.payload;
         const userIndex = state.users.findIndex((user) =>
-          user.PatientAppointments.some(
-            (app) => app.AppointmentID === updatedAppointment.AppointmentID
+          user.patientAppointments.some(
+            (app) => app.id === updatedAppointment.id
           )
         );
         if (userIndex !== -1) {
           const appointmentIndex = state.users[
             userIndex
-          ].PatientAppointments.findIndex(
-            (app) => app.AppointmentID === updatedAppointment.AppointmentID
+          ].patientAppointments.findIndex(
+            (app) => app.id === updatedAppointment.id
           );
           if (appointmentIndex !== -1) {
-            state.users[userIndex].PatientAppointments[appointmentIndex] =
+            state.users[userIndex].patientAppointments[appointmentIndex] =
               updatedAppointment;
           }
         }
