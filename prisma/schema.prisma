@@ -34,7 +34,7 @@ model User {
   patientChatrooms    Chatroom[]        @relation("PatientChatrooms")
   doctorChatrooms     Chatroom[]        @relation("DoctorChatrooms")
   sentMessages        ChatroomMessage[]
-  profilePicture      Media?
+  profilePicture      Media?   
   availability        Availability[]
   createdAt           DateTime          @default(now())
   updatedAt           DateTime          @updatedAt
@@ -92,7 +92,7 @@ model ChatroomMessage {
 model Media {
   id     Int    @id @default(autoincrement())
   userId Int    @unique
-  url    String
+  url    String @db.Text
   user   User   @relation(fields: [userId], references: [id])
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
