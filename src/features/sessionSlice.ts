@@ -21,12 +21,9 @@ export const fetchSession = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.get(
-        `http://localhost:5000/api/users/session`,
-        {
-          headers: { Authorization: `${token}` },
-        }
-      );
+      const response = await axios.get(`/auth/session`, {
+        headers: { Authorization: `${token}` },
+      });
       return response.data;
     } catch (error: any) {
       return rejectWithValue(error.response.data);

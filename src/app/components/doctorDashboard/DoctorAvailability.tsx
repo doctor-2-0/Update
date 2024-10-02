@@ -34,7 +34,6 @@ const DoctorAvailability: React.FC = () => {
   const [selectedDate, setSelectedDate] = useState<Dayjs | null>(null);
   const [startTime, setStartTime] = useState<Dayjs | null>(null);
   const [endTime, setEndTime] = useState<Dayjs | null>(null);
-  const [doctorId, setDoctorId] = useState<number | null>(null);
 
   const { session, loading, error } = useSelector(
     (state: RootState) => state.session
@@ -47,41 +46,13 @@ const DoctorAvailability: React.FC = () => {
   }, [dispatch]);
 
   useEffect(() => {
-    if (session) {
-      console.log("Session Data:", session);
-    }
-  }, [session]);
-
-  useEffect(() => {
-    const fetchDoctorInfo = async () => {
-      if (!session) return;
-      if (loading) return;
-      try {
-        const response = await axios.get(
-          `http://localhost:5000/api/doctor/${session.UserID}`,
-          {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("authToken")}`,
-            },
-          }
-        );
-        setDoctorId(response.data.UserID);
-      } catch (error) {
-        console.error("Failed to fetch doctor info", error);
-      }
-    };
-
-    fetchDoctorInfo();
-  }, [session]);
-
-  useEffect(() => {
     const fetchAvailability = async () => {
-      if (doctorId) {
+      if (session && session.userId) {
         try {
           const response = await axios.get(
-            `http://localhost:5000/api/availability/${doctorId}`
+            `/api/availability/${session.userId}`
           );
-          setAvailability(response.data);
+          setAvailability(response.data.availability);
         } catch (error) {
           console.error("Failed to fetch availability", error);
         }
@@ -89,35 +60,25 @@ const DoctorAvailability: React.FC = () => {
     };
 
     fetchAvailability();
-  }, [doctorId]);
+  }, [session]);
 
   const handleAddAvailability = async () => {
-    if (selectedDate && startTime && endTime && doctorId) {
-      // Ensure startTime is before endTime and not the same
-      if (startTime.isSame(endTime)) {
-        alert("Start time and end time cannot be the same.");
-        return;
-      }
-
-      if (startTime.isAfter(endTime)) {
+    if (selectedDate && startTime && endTime && session?.userId) {
+      if (startTime.isSame(endTime) || startTime.isAfter(endTime)) {
         alert("Start time must be before end time.");
         return;
       }
 
       const newAvailability = {
-        DoctorID: doctorId,
-        AvailableDate: selectedDate.format("YYYY-MM-DD"),
-        StartTime: startTime.format("HH:mm:ss"),
-        EndTime: endTime.format("HH:mm:ss"),
+        doctorId: session.userId,
+        availableDate: selectedDate.format("YYYY-MM-DD"),
+        startTime: startTime.format("HH:mm:ss"),
+        endTime: endTime.format("HH:mm:ss"),
       };
 
       try {
-        const response = await axios.post(
-          "http://localhost:5000/api/availability",
-          newAvailability
-        );
+        const response = await axios.post("/api/availability", newAvailability);
         setAvailability((prev) => [...prev, response.data]);
-        // Reset inputs
         setSelectedDate(null);
         setStartTime(null);
         setEndTime(null);
@@ -126,7 +87,7 @@ const DoctorAvailability: React.FC = () => {
         console.error("Failed to add availability", error);
       }
     } else {
-      alert("Please fill in all fields and ensure doctor ID is loaded.");
+      alert("Please fill in all fields.");
     }
   };
 

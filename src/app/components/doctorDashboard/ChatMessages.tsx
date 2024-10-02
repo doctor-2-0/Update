@@ -26,6 +26,7 @@ import {
   LocalHospital as HospitalIcon,
 } from "@mui/icons-material";
 import axios from "@/lib/axios";
+import LiveCall from "../LiveCall";
 
 interface Message {
   id: number | string;
@@ -65,12 +66,12 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({
   const [isCallActive, setIsCallActive] = useState(false);
   const [localStream, setLocalStream] = useState<MediaStream | null>(null);
   const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null);
-  const [peerConnection, setPeerConnection] =
-    useState<RTCPeerConnection | null>(null);
   const [peer, setPeer] = useState<Peer.Instance | null>(null);
   const [callStatus, setCallStatus] = useState<string>("");
-  const [remoteSocketId, setRemoteSocketId] = useState<string | null>(null);
   const [isInitiator, setIsInitiator] = useState(false);
+  const [otherUserId, setOtherUserId] = useState<string | null>(null);
+  const [isAudioMuted, setIsAudioMuted] = useState(false);
+  const [isVideoMuted, setIsVideoMuted] = useState(false);
 
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
@@ -148,34 +149,17 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({
   }, []);
 
   useEffect(() => {
-    console.log("Setting up userJoined listener");
+    socket.emit("join", roomId);
 
-    const handleUserJoined = (socketId: string) => {
-      console.log("User joined the room:", socketId);
-      setRemoteSocketId(socketId);
-    };
+    socket.on("userJoined", (socketId: string) => {
+      console.log("User joined:", socketId);
+      if (socketId !== socket.id) {
+        setOtherUserId(socketId);
+      }
+    });
 
-    socket.on("userJoined", handleUserJoined);
-
-    // Emit join event when component mounts
-    if (roomId) {
-      console.log("Emitting join event for room:", roomId);
-      socket.emit("join", roomId);
-    }
-
-    return () => {
-      console.log("Cleaning up userJoined listener");
-      socket.off("userJoined", handleUserJoined);
-    };
-  }, [socket, roomId]);
-
-  useEffect(() => {
     socket.on("callUser", ({ signal, from }: { signal: any; from: any }) => {
-      console.log("Received callUser event", { signal, from });
-      // if (from === socket.id) {
-      //   console.log("Ignoring self-call");
-      //   return;
-      // }
+      console.log("Received call from:", from);
       setCallStatus("Incoming call...");
       setIsCallActive(true);
       setIsInitiator(false);
@@ -187,12 +171,11 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({
       });
 
       newPeer.on("signal", (data) => {
-        console.log("Sending answer signal", data);
         socket.emit("answerCall", { signal: data, to: from });
       });
 
       newPeer.on("stream", (remoteStream) => {
-        console.log("Received remote stream");
+        setRemoteStream(remoteStream);
         if (remoteVideoRef.current) {
           remoteVideoRef.current.srcObject = remoteStream;
         }
@@ -203,7 +186,7 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({
     });
 
     socket.on("callAccepted", (signal: any) => {
-      console.log("Call accepted, received signal", signal);
+      console.log("Call accepted");
       setCallStatus("Call connected");
       if (peer && isInitiator) {
         peer.signal(signal);
@@ -211,43 +194,25 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({
     });
 
     socket.on("callEnded", () => {
+      console.log("Call ended");
       endCall();
     });
 
     return () => {
+      socket.off("userJoined");
       socket.off("callUser");
       socket.off("callAccepted");
       socket.off("callEnded");
     };
-  }, [socket, localStream, peer, isInitiator]);
-
-  useEffect(() => {
-    console.log("Socket connected:", socket.connected);
-
-    const onConnect = () => {
-      console.log("Socket connected");
-    };
-
-    socket.on("connect", onConnect);
-
-    return () => {
-      socket.off("connect", onConnect);
-    };
-  }, [socket]);
+  }, [socket, localStream, peer, isInitiator, roomId]);
 
   const startCall = () => {
-    console.log("Starting call...");
-    if (!localStream) {
-      console.error("Local stream is not available");
+    if (!localStream || !otherUserId) {
+      console.log("Cannot start call: localStream or otherUserId is missing");
       return;
     }
 
-    if (!remoteSocketId) {
-      console.error("No remote user to call");
-      return;
-    }
-
-    console.log("Calling user:", remoteSocketId);
+    console.log("Starting call to:", otherUserId);
     setCallStatus("Calling...");
     setIsInitiator(true);
 
@@ -258,16 +223,15 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({
     });
 
     newPeer.on("signal", (data) => {
-      console.log("Sending call signal to:", remoteSocketId);
       socket.emit("callUser", {
-        userToCall: remoteSocketId,
+        userToCall: otherUserId,
         signalData: data,
         from: socket.id,
       });
     });
 
     newPeer.on("stream", (remoteStream) => {
-      console.log("Received remote stream");
+      setRemoteStream(remoteStream);
       if (remoteVideoRef.current) {
         remoteVideoRef.current.srcObject = remoteStream;
       }
@@ -275,7 +239,6 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({
 
     setPeer(newPeer);
     setIsCallActive(true);
-    socket.emit("startCall", { roomId, callerId: socket.id });
   };
 
   const endCall = () => {
@@ -439,6 +402,22 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({
     );
   };
 
+  const toggleAudio = () => {
+    if (localStream) {
+      const audioTrack = localStream.getAudioTracks()[0];
+      audioTrack.enabled = !audioTrack.enabled;
+      setIsAudioMuted(!audioTrack.enabled);
+    }
+  };
+
+  const toggleVideo = () => {
+    if (localStream) {
+      const videoTrack = localStream.getVideoTracks()[0];
+      videoTrack.enabled = !videoTrack.enabled;
+      setIsVideoMuted(!videoTrack.enabled);
+    }
+  };
+
   return (
     <Paper
       elevation={3}
@@ -467,7 +446,7 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({
           <HospitalIcon sx={{ mr: 1, verticalAlign: "middle" }} />
           Medical Chat
         </Typography>
-        {remoteSocketId && !isCallActive && (
+        {otherUserId && !isCallActive && (
           <Button
             variant="outlined"
             color="secondary"
@@ -495,46 +474,32 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({
           </Typography>
         )}
       </Box>
-      {isCallActive && (
-        <Box sx={{ display: "flex", justifyContent: "center", p: 2 }}>
-          <Box sx={{ width: "40%", mr: 2 }}>
-            <video
-              ref={localVideoRef}
-              autoPlay
-              muted
-              playsInline
-              style={{ width: "100%", height: "auto" }}
-            />
-            <Typography variant="subtitle2" align="center">
-              You
-            </Typography>
-          </Box>
-          <Box sx={{ width: "40%" }}>
-            <video
-              ref={remoteVideoRef}
-              autoPlay
-              playsInline
-              style={{ width: "100%", height: "auto" }}
-            />
-            <Typography variant="subtitle2" align="center">
-              Remote User
-            </Typography>
-          </Box>
+      {isCallActive ? (
+        <Box sx={{ height: "calc(100% - 64px)" }}>
+          <LiveCall
+            remoteStream={remoteStream}
+            onEndCall={endCall}
+            isAudioMuted={isAudioMuted}
+            isVideoMuted={isVideoMuted}
+            onToggleAudio={toggleAudio}
+            onToggleVideo={toggleVideo}
+          />
         </Box>
+      ) : (
+        <List
+          sx={{
+            flex: 1,
+            overflow: "auto",
+            p: 2,
+            bgcolor: "grey.100", // Light gray background for the chat area
+            backgroundImage: "url('/subtle-medical-pattern.png')",
+            backgroundRepeat: "repeat",
+          }}
+        >
+          {messages.map((message, index) => renderMessage(message, index))}
+          <div ref={messagesEndRef} />
+        </List>
       )}
-      <List
-        sx={{
-          flex: 1,
-          overflow: "auto",
-          p: 2,
-          bgcolor: "grey.100", // Light gray background for the chat area
-          backgroundImage: "url('/subtle-medical-pattern.png')",
-          backgroundRepeat: "repeat",
-        }}
-      >
-        {messages.map((message, index) => renderMessage(message, index))}
-        <div ref={messagesEndRef} />
-      </List>
       <Box
         sx={{
           p: 2,
