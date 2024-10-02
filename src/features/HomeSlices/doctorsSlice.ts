@@ -3,6 +3,7 @@ import axios from "@/lib/axios";
 import { isAxiosError } from "axios";
 
 export interface Doctor {
+  [x: string]: any;
   id: number;
   firstName: string;
   lastName: string;
