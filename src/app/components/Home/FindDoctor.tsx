@@ -1,37 +1,45 @@
-import React, { useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { searchDoctors } from "@/features/HomeSlices/doctorsSlice";
 import {
-  Box,
-  Grid,
-  TextField,
-  Switch,
-  Button,
-  FormControlLabel,
-  Typography,
-  Paper,
-} from "@mui/material";
-import { AppDispatch, RootState } from "@/lib/store";
-import {
-  setName,
-  setSpeciality,
   setAvailable,
+  setName,
   setNearMe,
   setPerimeter,
+  setSpeciality,
 } from "@/features/HomeSlices/findDoctorSlice";
-import { searchDoctors } from "@/features/HomeSlices/doctorsSlice";
-import SearchResults from "./SearchResults";
-import LocationSearch, {
-  SearchResult,
-} from "@/app/components/user/LocationSearch";
-import {
-  setSearchedLocation,
-  clearSearchedLocation,
-} from "@/features/userLocationSlice";
 import { setShowMap } from "@/features/HomeSlices/mapSlice";
+import {
+  clearSearchedLocation,
+  setSearchedLocation,
+} from "@/features/userLocationSlice";
+import { AppDispatch, RootState } from "@/lib/store";
+import {
+  Box,
+  Button,
+  FormControlLabel,
+  Grid,
+  Paper,
+  Switch,
+  TextField,
+  Typography,
+} from "@mui/material";
+import dynamic from "next/dynamic";
+import React, { useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+
+
+const SearchResults = dynamic(() => import("./SearchResults"), { ssr: false });
+const LocationSearch = dynamic(
+  () => import("@/app/components/user/LocationSearch"),
+  { ssr: false }
+);
 
 interface FindDoctorProps {
   onToggleReference: () => void;
   onToggleMap: () => void;
+}
+interface Location {
+  lat?: string;
+  lon?: string;
 }
 
 const FindDoctor: React.FC<FindDoctorProps> = ({
@@ -46,10 +54,11 @@ const FindDoctor: React.FC<FindDoctorProps> = ({
     (state: RootState) => state.userLocation
   );
   const showMap = useSelector((state: RootState) => state.map.showMap);
+
   const [localPerimeter, setLocalPerimeter] = useState(perimeter.toString());
   const [hasSearched, setHasSearched] = useState(false);
   const [showResults, setShowResults] = useState(false);
-  const [selectedLocation, setSelectedLocation] = useState<SearchResult | null>(
+  const [selectedLocation, setSelectedLocation] = useState(
     null
   );
   const [lastTypedLocation, setLastTypedLocation] = useState("");
@@ -58,15 +67,24 @@ const FindDoctor: React.FC<FindDoctorProps> = ({
     lon: string;
   } | null>(null);
 
+  const isClient = typeof window !== "undefined";
+
   const handleSearch = () => {
+    let selectedLocation: Location | undefined;
+
     let searchLatitude = selectedLocation?.lat
       ? parseFloat(selectedLocation.lat)
       : undefined;
     let searchLongitude = selectedLocation?.lon
       ? parseFloat(selectedLocation.lon)
       : undefined;
-
-    if (!selectedLocation && lastTypedLocation && lastSelectedCoords) {
+    if (
+      !selectedLocation &&
+      lastTypedLocation &&
+      lastSelectedCoords &&
+      isClient
+    ) {
+      // Handle client-side DOM logic carefully
       const currentLocationInput = document.querySelector(
         'input[aria-label="Address"]'
       ) as HTMLInputElement;
@@ -128,7 +146,7 @@ const FindDoctor: React.FC<FindDoctorProps> = ({
     dispatch(clearSearchedLocation());
   };
 
-  const handleLocationSelect = (result: SearchResult) => {
+  const handleLocationSelect = (result: any) => {
     setSelectedLocation(result);
     setLastTypedLocation(result.display_name);
     setLastSelectedCoords({ lat: result.lat, lon: result.lon });
