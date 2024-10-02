@@ -1,9 +1,9 @@
+import { Server as HttpServer } from "http";
 import { Server as SocketIOServer } from "socket.io";
-import { Server as HTTPServer } from "http";
-import { v4 } from "uuid";
+import { ChatMessage } from "./types/ChatMessage";
 
-export function setupSocketServer(httpServer: HTTPServer) {
-  const io = new SocketIOServer(httpServer, {
+export function setupSocketServer(server: HttpServer) {
+  const io = new SocketIOServer(server, {
     cors: {
       origin: "*",
       methods: ["GET", "POST"],
@@ -11,39 +11,32 @@ export function setupSocketServer(httpServer: HTTPServer) {
   });
 
   io.on("connection", (socket) => {
-    console.log("a user connected", socket.id);
+    console.log("A user connected");
 
-    socket.emit("me", socket.id);
-
-    socket.on("join", (roomId) => {
-      console.log(`User ${socket.id} joining room ${roomId}`);
+    socket.on("join", (roomId: string) => {
       socket.join(roomId);
       socket.to(roomId).emit("userJoined", socket.id);
-      console.log(`Emitted userJoined event to room ${roomId}`);
     });
 
+    socket.on("chat_message", (message: ChatMessage) => {
+      io.to(message.ChatroomID.toString()).emit("chat_message", message);
+    });
+
+    // Add WebRTC signaling events
     socket.on("callUser", ({ userToCall, signalData, from }) => {
-      console.log("callUser event received", { userToCall, from });
       io.to(userToCall).emit("callUser", { signal: signalData, from });
     });
 
-    socket.on("answerCall", ({ to, signal }) => {
-      console.log("answerCall event received", { to });
+    socket.on("answerCall", ({ signal, to }) => {
       io.to(to).emit("callAccepted", signal);
     });
 
-    socket.on("chat_message", (msg) => {
-      console.log("user message", msg);
-      if (!msg.MessageID) {
-        msg.MessageID = v4();
-      }
-
-      socket.to(msg.ChatroomID).emit("chat_message", msg);
+    socket.on("endCall", ({ roomId }) => {
+      socket.to(roomId).emit("callEnded");
     });
 
     socket.on("disconnect", () => {
-      console.log("user disconnected", socket.id);
-      socket.broadcast.emit("callEnded");
+      console.log("A user disconnected");
     });
   });
 

@@ -48,12 +48,14 @@ interface ChatMessagesProps {
   roomId: number;
   socket: any;
   meetLink: string | null;
+  isDoctor: boolean;
 }
 
 const ChatMessages: React.FC<ChatMessagesProps> = ({
   roomId,
   socket,
   meetLink,
+  isDoctor,
 }) => {
   const [isLoading, setIsLoading] = useState(false);
   const { auth, checkAuth } = useAuth();
@@ -208,9 +210,14 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({
       }
     });
 
+    socket.on("callEnded", () => {
+      endCall();
+    });
+
     return () => {
       socket.off("callUser");
       socket.off("callAccepted");
+      socket.off("callEnded");
     };
   }, [socket, localStream, peer, isInitiator]);
 
@@ -268,6 +275,7 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({
 
     setPeer(newPeer);
     setIsCallActive(true);
+    socket.emit("startCall", { roomId, callerId: socket.id });
   };
 
   const endCall = () => {
@@ -282,6 +290,7 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({
     setPeer(null);
     setIsInitiator(false);
     setCallStatus("");
+    socket.emit("endCall", { roomId });
   };
 
   const handleSendMessage = async () => {

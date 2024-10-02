@@ -215,6 +215,7 @@ const ChatRooms: React.FC<ChatRoomsProps> = ({ onClose }) => {
             socket={socket}
             roomId={selectedRoom}
             meetLink={meetLink}
+            isDoctor={isDoctor || false}
           />
         </Box>
       ) : (
