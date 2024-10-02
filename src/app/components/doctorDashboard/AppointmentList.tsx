@@ -15,11 +15,14 @@ import {
   DialogContent,
   DialogActions,
   Button,
+  IconButton,
 } from "@mui/material";
 import { AppDispatch } from "@/lib/store";
 import { updateStatus } from "@/features/userSlice";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
+import MessageIcon from "@mui/icons-material/Message";
+import { useRouter } from "next/navigation";
 
 dayjs.extend(relativeTime);
 
@@ -113,6 +116,16 @@ const AppointmentList: React.FC<AppointmentListProps> = ({ appointments }) => {
     );
   };
 
+  const handleMessageClick = (appointment: any) => {
+    // Here you can implement the logic to open a chat or messaging interface
+    console.log(
+      `Opening chat with patient: ${appointment.patient.firstName} ${appointment.patient.lastName}`
+    );
+    // You might want to navigate to a chat page or open a chat modal
+    // For example:
+    // router.push(`/chat/${appointment.id}`);
+  };
+
   return (
     <>
       <Typography variant="h6" gutterBottom>
@@ -136,7 +149,11 @@ const AppointmentList: React.FC<AppointmentListProps> = ({ appointments }) => {
                   color={getStatusColor(status)}
                   size="small"
                   onClick={(event) => handleClick(event, appointment)}
+                  style={{ marginRight: "10px" }}
                 />
+                <IconButton onClick={() => handleMessageClick(appointment)}>
+                  <MessageIcon />
+                </IconButton>
               </ListItem>
             );
           })

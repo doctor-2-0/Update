@@ -23,10 +23,10 @@ import axios from "@/lib/axios";
 interface Availability {
   AvailabilityID: number;
   DoctorID: number;
-  AvailableDate: string;
-  StartTime: string;
-  EndTime: string;
-  IsAvailable: boolean;
+  availableDate: string;
+  startTime: string;
+  endTime: string;
+  isAvailable: boolean;
 }
 
 const DoctorAvailability: React.FC = () => {
@@ -46,12 +46,11 @@ const DoctorAvailability: React.FC = () => {
   }, [dispatch]);
 
   useEffect(() => {
+    console.log("Session Data:333333333333", session);
     const fetchAvailability = async () => {
-      if (session && session.userId) {
+      if (session && session.user.id) {
         try {
-          const response = await axios.get(
-            `/api/availability/${session.userId}`
-          );
+          const response = await axios.get(`/availability/${session.user.id}`);
           setAvailability(response.data.availability);
         } catch (error) {
           console.error("Failed to fetch availability", error);
@@ -63,21 +62,29 @@ const DoctorAvailability: React.FC = () => {
   }, [session]);
 
   const handleAddAvailability = async () => {
-    if (selectedDate && startTime && endTime && session?.userId) {
+    console.log("Selected Date:", selectedDate);
+    console.log("Start Time:", startTime);
+    console.log("End Time:", endTime);
+    console.log("Session User ID:", session?.user.id);
+    if (selectedDate && startTime && endTime && session?.user.id) {
       if (startTime.isSame(endTime) || startTime.isAfter(endTime)) {
         alert("Start time must be before end time.");
         return;
       }
 
       const newAvailability = {
-        doctorId: session.userId,
+        doctorId: session.user.id,
         availableDate: selectedDate.format("YYYY-MM-DD"),
         startTime: startTime.format("HH:mm:ss"),
         endTime: endTime.format("HH:mm:ss"),
       };
+      console.log(
+        "New Availability: heeeeeeeeeeeeeeeeeeeeeere",
+        newAvailability
+      );
 
       try {
-        const response = await axios.post("/api/availability", newAvailability);
+        const response = await axios.post("/availability", newAvailability);
         setAvailability((prev) => [...prev, response.data]);
         setSelectedDate(null);
         setStartTime(null);
@@ -142,10 +149,10 @@ const DoctorAvailability: React.FC = () => {
             {availability.map((slot, index) => (
               <ListItem key={index}>
                 <ListItemText
-                  primary={dayjs(slot.AvailableDate).format("MMMM D, YYYY")}
-                  secondary={`${dayjs(slot.StartTime, "HH:mm:ss").format(
+                  primary={dayjs(slot.availableDate).format("MMMM D, YYYY")}
+                  secondary={`${dayjs(slot.startTime, "HH:mm:ss").format(
                     "h:mm A"
-                  )} to ${dayjs(slot.EndTime, "HH:mm:ss").format("h:mm A")}`}
+                  )} to ${dayjs(slot.endTime, "HH:mm:ss").format("h:mm A")}`}
                 />
               </ListItem>
             ))}

@@ -24,6 +24,7 @@ export const fetchSession = createAsyncThunk(
       const response = await axios.get(`/auth/session`, {
         headers: { Authorization: `${token}` },
       });
+      console.log("Session Data:", response.data);
       return response.data;
     } catch (error: any) {
       return rejectWithValue(error.response.data);
